@@ -1,13 +1,19 @@
 
 import NavBar from "@/components/NavBar";
-import Dashboard from "@/components/Dashboard";
+import PaymentSystem from "@/components/PaymentSystem";
 
-const Index = () => {
+const Payments = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
       <main className="flex-1 container py-8 px-4">
-        <Dashboard />
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Payments</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your earnings, connect your wallet, and withdraw funds.
+          </p>
+        </div>
+        <PaymentSystem />
       </main>
       <footer className="border-t py-6">
         <div className="container flex flex-col md:flex-row justify-between items-center gap-4">
@@ -25,4 +31,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Payments;
