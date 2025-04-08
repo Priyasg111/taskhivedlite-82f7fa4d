@@ -10,7 +10,7 @@ const NavBar = () => {
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold bg-gradient-to-r from-brand-blue to-brand-teal text-transparent bg-clip-text">
-              TaskHub
+              TaskHived
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
