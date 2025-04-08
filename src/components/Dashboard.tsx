@@ -7,7 +7,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-12">
       {/* Hero section */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-blue to-brand-teal py-16 px-6 text-white text-center">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-blue to-brand-teal py-16 px-6 text-foreground text-center">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMzYgMzRjMCAxLjEtLjkgMi0yIDJzLTItLjktMi0yIC45LTIgMi0yIDIgLjkgMiAyem0tMjAgMGMwIDEuMS0uOSAyLTIgMnMtMi0uOS0yLTIgLjktMiAyLTIgMiAuOSAyIDJ6IiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMikiLz48cGF0aCBkPSJNNDAgNDhjMCAxLjEtLjkgMi0yIDJzLTItLjktMi0yIC45LTIgMi0yIDIgLjkgMiAyem0tMjAtMjBjMCAxLjEtLjkgMi0yIDJzLTItLjktMi0yIC45LTIgMi0yIDIgLjkgMiAyem0yMC0yMGMwIDEuMS0uOSAyLTIgMnMtMi0uOS0yLTIgLjktMiAyLTIgMiAuOSAyIDJ6TTIwIDQ4YzAgMS4xLS45IDItMiAycy0yLS45LTItMiAuOS0yIDItMiAyIC45IDIgMnoiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMC4xKSIvPjwvZz48L3N2Zz4=')]"></div>
         <div className="relative max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Micro Tasks, Macro Impact</h1>
@@ -16,10 +16,10 @@ const Dashboard = () => {
             AI-verified quality, crypto-powered payments.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-brand-blue hover:bg-white/90">
+            <Button size="lg" className="bg-white text-primary hover:bg-white/90">
               Find Tasks
             </Button>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+            <Button size="lg" variant="outline" className="border-white hover:bg-white/10">
               Post a Task
             </Button>
           </div>
@@ -96,7 +96,7 @@ const Dashboard = () => {
                     <span className="badge badge-primary">Easy</span>
                   </div>
                 </div>
-                <div className="flex items-center bg-brand-blue/10 px-3 py-1 rounded-full text-brand-blue font-medium">
+                <div className="flex items-center bg-primary/10 px-3 py-1 rounded-full text-primary font-medium">
                   <span>$15.00</span>
                 </div>
               </div>
@@ -122,7 +122,7 @@ const Dashboard = () => {
                     <span className="badge badge-secondary">Medium</span>
                   </div>
                 </div>
-                <div className="flex items-center bg-brand-blue/10 px-3 py-1 rounded-full text-brand-blue font-medium">
+                <div className="flex items-center bg-primary/10 px-3 py-1 rounded-full text-primary font-medium">
                   <span>$18.50</span>
                 </div>
               </div>
@@ -148,7 +148,7 @@ const Dashboard = () => {
                     <span className="badge badge-secondary">Medium</span>
                   </div>
                 </div>
-                <div className="flex items-center bg-brand-blue/10 px-3 py-1 rounded-full text-brand-blue font-medium">
+                <div className="flex items-center bg-primary/10 px-3 py-1 rounded-full text-primary font-medium">
                   <span>$22.75</span>
                 </div>
               </div>
