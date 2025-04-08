@@ -1,7 +1,7 @@
 
 import NavBar from "@/components/NavBar";
 import TaskList from "@/components/TaskList";
-import TaskCompletionForm from "@/components/TaskCompletionForm";
+import { TaskCompletionForm } from "@/components/TaskCompletionForm";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";

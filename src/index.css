@@ -7,83 +7,86 @@
 
 @layer base {
   :root {
-    --background: 60 100% 99%;
-    --foreground: 48 30% 10%;
+    /* Updated color scheme to match TaskHived theme */
+    --background: 0 0% 100%;
+    --foreground: 20 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 48 30% 10%;
+    --card-foreground: 20 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 48 30% 10%;
+    --popover-foreground: 20 10% 10%;
 
-    --primary: 48 100% 50%;
-    --primary-foreground: 48 30% 10%;
+    --primary: 43 96% 56%;
+    --primary-foreground: 20 10% 10%;
 
-    --secondary: 48 100% 96%;
-    --secondary-foreground: 48 30% 10%;
+    --secondary: 60 5% 96%;
+    --secondary-foreground: 20 10% 10%;
 
     --muted: 60 5% 96%;
-    --muted-foreground: 48 10% 46%;
+    --muted-foreground: 20 7% 45%;
 
-    --accent: 48 100% 96%;
-    --accent-foreground: 48 30% 10%;
+    --accent: 43 96% 94%;
+    --accent-foreground: 20 10% 10%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 60 100% 99%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 48 10% 90%;
-    --input: 48 10% 90%;
-    --ring: 48 100% 50%;
+    --border: 20 5% 90%;
+    --input: 20 5% 90%;
+    --ring: 43 96% 56%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 60 100% 99%;
-    --sidebar-foreground: 48 10% 26%;
-    --sidebar-primary: 48 100% 50%;
-    --sidebar-primary-foreground: 48 30% 10%;
-    --sidebar-accent: 48 100% 96%;
-    --sidebar-accent-foreground: 48 30% 10%;
-    --sidebar-border: 48 10% 91%;
-    --sidebar-ring: 48 100% 50%;
+    /* Sidebar colors matching TaskHived amber/black theme */
+    --sidebar-background: 20 10% 10%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary-foreground: 20 10% 10%;
+    --sidebar-accent: 20 10% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 20 10% 15%;
+    --sidebar-ring: 43 96% 56%;
   }
 
   .dark {
-    --background: 48 30% 10%;
-    --foreground: 60 100% 99%;
+    --background: 20 10% 10%;
+    --foreground: 0 0% 100%;
 
-    --card: 48 30% 10%;
-    --card-foreground: 60 100% 99%;
+    --card: 20 10% 10%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 48 30% 10%;
-    --popover-foreground: 60 100% 99%;
+    --popover: 20 10% 10%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 48 100% 50%;
-    --primary-foreground: 48 30% 10%;
+    --primary: 43 96% 56%;
+    --primary-foreground: 20 10% 10%;
 
-    --secondary: 48 50% 30%;
-    --secondary-foreground: 60 100% 99%;
+    --secondary: 20 5% 15%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 48 30% 20%;
-    --muted-foreground: 48 10% 70%;
+    --muted: 20 10% 15%;
+    --muted-foreground: 20 5% 65%;
 
-    --accent: 48 50% 30%;
-    --accent-foreground: 60 100% 99%;
+    --accent: 20 5% 15%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 60 100% 99%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 48 30% 20%;
-    --input: 48 30% 20%;
-    --ring: 48 100% 50%;
+    --border: 20 10% 15%;
+    --input: 20 10% 15%;
+    --ring: 43 96% 56%;
     
-    --sidebar-background: 48 30% 10%;
-    --sidebar-foreground: 48 100% 96%;
-    --sidebar-primary: 48 100% 50%;
-    --sidebar-primary-foreground: 48 30% 10%;
-    --sidebar-accent: 48 30% 16%;
-    --sidebar-accent-foreground: 48 100% 96%;
-    --sidebar-border: 48 30% 16%;
-    --sidebar-ring: 48 100% 50%;
+    /* Keep sidebar colors consistent in dark mode */
+    --sidebar-background: 20 10% 10%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary-foreground: 20 10% 10%;
+    --sidebar-accent: 20 10% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 20 10% 15%;
+    --sidebar-ring: 43 96% 56%;
   }
 }
 
@@ -107,14 +110,24 @@
   }
 
   .badge-primary {
-    @apply bg-primary/10 text-primary;
+    @apply bg-primary/10 text-primary-foreground;
   }
   
   .badge-secondary {
-    @apply bg-secondary/10 text-secondary;
+    @apply bg-secondary/10 text-secondary-foreground;
   }
   
   .badge-outline {
     @apply border border-input bg-background text-foreground;
+  }
+
+  /* Adding TaskHived-inspired components */
+  .honeycomb-pattern {
+    background-color: #f7f7f7;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.5 60l26-15v30zm-26 15l26 15l26-15v-30l-26-15l-26 15zm52-30l26 15v-30z' fill='%23FBBF24' fill-opacity='0.1'/%3E%3C/svg%3E");
+  }
+
+  .btn-amber {
+    @apply bg-amber-400 hover:bg-amber-500 text-black font-medium px-4 py-2 rounded-md transition-colors;
   }
 }

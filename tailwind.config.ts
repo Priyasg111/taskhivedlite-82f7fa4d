@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,10 +64,23 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				brand: {
-					blue: '#FFD700',
-					teal: '#FFEB3B',
-					dark: '#493C0B',
-					light: '#FFFDF5'
+					blue: '#FBB03B', // Changed to amber color
+					teal: '#F9A826', // Changed to darker amber
+					dark: '#131313', // Changed to near black
+					light: '#FFFBF2'  // Changed to light amber tint
+				},
+				amber: {
+					50: '#FFFBEB',
+					100: '#FEF3C7',
+					200: '#FDE68A',
+					300: '#FCD34D',
+					400: '#FBBF24',
+					500: '#F59E0B',
+					600: '#D97706',
+					700: '#B45309',
+					800: '#92400E',
+					900: '#78350F',
+					950: '#451A03',
 				}
 			},
 			borderRadius: {
@@ -107,6 +121,7 @@ export default {
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				'honeycomb-pattern': "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.5 60l26-15v30zm-26 15l26 15l26-15v-30l-26-15l-26 15zm52-30l26 15v-30z' fill='%23FBBF24' fill-opacity='0.1'/%3E%3C/svg%3E\")",
 			},
 		}
 	},
