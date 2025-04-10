@@ -1,9 +1,12 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TaskCard, { TaskCardProps } from "./TaskCard";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "./ui/button";
 
-// Sample task data
+// Sample task data with experience requirements
 const sampleTasks: TaskCardProps[] = [
   {
     id: "task-1",
@@ -13,7 +16,8 @@ const sampleTasks: TaskCardProps[] = [
     estimatedTime: "30-45 min",
     category: "AI Training",
     difficulty: "Easy",
-    status: "Open"
+    status: "Open",
+    requiredExperience: 0 // No experience required
   },
   {
     id: "task-2",
@@ -23,7 +27,8 @@ const sampleTasks: TaskCardProps[] = [
     estimatedTime: "45-60 min",
     category: "Content Moderation",
     difficulty: "Medium",
-    status: "Open"
+    status: "Open",
+    requiredExperience: 5 // 5 hours required
   },
   {
     id: "task-3",
@@ -33,7 +38,8 @@ const sampleTasks: TaskCardProps[] = [
     estimatedTime: "60 min",
     category: "Documentation",
     difficulty: "Medium",
-    status: "In Progress"
+    status: "In Progress",
+    requiredExperience: 10 // 10 hours required
   },
   {
     id: "task-4",
@@ -43,7 +49,8 @@ const sampleTasks: TaskCardProps[] = [
     estimatedTime: "50-70 min",
     category: "Transcription",
     difficulty: "Hard",
-    status: "Completed"
+    status: "Completed",
+    requiredExperience: 15 // 15 hours required
   },
   {
     id: "task-5",
@@ -53,25 +60,49 @@ const sampleTasks: TaskCardProps[] = [
     estimatedTime: "40-60 min",
     category: "E-commerce",
     difficulty: "Medium",
-    status: "Verified"
+    status: "Verified",
+    requiredExperience: 8 // 8 hours required
   },
 ];
 
 const TaskList = () => {
   const [tasks, setTasks] = useState<TaskCardProps[]>(sampleTasks);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleTaskClick = (taskId: string) => {
-    // In a real app, this would navigate to task detail page or show a modal
-    toast({
-      title: "Task selected",
-      description: `You selected task ID: ${taskId}`,
-    });
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to work on tasks",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+    
+    // Find the task
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    // Check if user has enough experience
+    if (task.status === "Open" && user.experience < task.requiredExperience) {
+      toast({
+        title: "Insufficient experience",
+        description: `This task requires ${task.requiredExperience} hours of experience. You currently have ${user.experience} hours.`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Update task status for demo purposes
     setTasks(tasks.map(task => {
       if (task.id === taskId) {
-        if (task.status === "Open") return { ...task, status: "In Progress" };
+        if (task.status === "Open") {
+          navigate(`/complete-tasks/${taskId}`);
+          return { ...task, status: "In Progress" };
+        }
         if (task.status === "In Progress") return { ...task, status: "Completed" };
         if (task.status === "Completed") return { ...task, status: "Verified" };
       }
@@ -83,6 +114,11 @@ const TaskList = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Available Tasks</h2>
+        {!user && (
+          <Button onClick={() => navigate("/signup")} className="bg-brand-blue hover:bg-brand-blue/90">
+            Sign Up to Start Working
+          </Button>
+        )}
         <div className="space-x-2">
           <select className="border rounded-md p-2 text-sm bg-background">
             <option value="">All Categories</option>

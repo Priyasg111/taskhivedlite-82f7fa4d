@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, ArrowDown, ArrowUp, CheckCircle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { DollarSign, ArrowDown, ArrowUp, CheckCircle, Wallet, AlertTriangle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 // Sample payment history data
 const samplePayments = [
@@ -35,7 +36,7 @@ const samplePayments = [
     date: "2025-04-02T16:45:00Z",
     status: "completed",
     task: "Content Moderation",
-    from: "TaskHub Wallet",
+    from: "TaskHived Wallet",
   },
   {
     id: "tx-4",
@@ -49,9 +50,11 @@ const samplePayments = [
 ];
 
 const PaymentSystem = () => {
+  const { user } = useAuth();
   const [balance, setBalance] = useState(96.25);
   const [walletAddress, setWalletAddress] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawCurrency, setWithdrawCurrency] = useState("USDC");
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const { toast } = useToast();
   
@@ -95,7 +98,7 @@ const PaymentSystem = () => {
       
       toast({
         title: "Withdrawal successful",
-        description: `${amount.toFixed(2)} USDC has been sent to your wallet.`,
+        description: `${amount.toFixed(2)} ${withdrawCurrency} has been sent to your wallet.`,
       });
     } catch (error) {
       toast({
@@ -119,6 +122,26 @@ const PaymentSystem = () => {
     });
   };
 
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <Wallet className="h-16 w-16 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Access your payments</h2>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Sign in to view your earnings, connect your crypto wallet, and withdraw funds.
+        </p>
+        <div className="flex gap-4">
+          <Button variant="outline" asChild>
+            <a href="/login">Log In</a>
+          </Button>
+          <Button asChild>
+            <a href="/signup">Sign Up</a>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -141,7 +164,7 @@ const PaymentSystem = () => {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>Wallet</CardTitle>
+            <CardTitle>Crypto Wallet</CardTitle>
           </CardHeader>
           <CardContent>
             {!walletAddress ? (
@@ -169,8 +192,18 @@ const PaymentSystem = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Withdraw USDC</label>
-                  <div className="flex space-x-2">
+                  <label className="text-sm font-medium">Withdraw Crypto</label>
+                  <div className="flex space-x-2 mb-2">
+                    <select 
+                      className="border rounded-md p-2 text-sm bg-background"
+                      value={withdrawCurrency}
+                      onChange={(e) => setWithdrawCurrency(e.target.value)}
+                    >
+                      <option value="USDC">USDC</option>
+                      <option value="ETH">ETH</option>
+                      <option value="BTC">BTC</option>
+                      <option value="USDT">USDT</option>
+                    </select>
                     <Input
                       type="number"
                       placeholder="Amount"
@@ -179,12 +212,18 @@ const PaymentSystem = () => {
                       min="0"
                       step="0.01"
                     />
-                    <Button 
-                      onClick={handleWithdraw}
-                      disabled={isWithdrawing || !withdrawAmount || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > balance}
-                    >
-                      {isWithdrawing ? "Processing..." : "Withdraw"}
-                    </Button>
+                  </div>
+                  <Button 
+                    onClick={handleWithdraw}
+                    disabled={isWithdrawing || !withdrawAmount || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > balance}
+                    className="w-full"
+                  >
+                    {isWithdrawing ? "Processing..." : "Withdraw"}
+                  </Button>
+                  
+                  <div className="mt-2 text-xs text-muted-foreground flex items-start gap-1">
+                    <AlertTriangle className="h-3 w-3 mt-0.5" />
+                    <span>Make sure the withdrawal address supports {withdrawCurrency} on the correct network.</span>
                   </div>
                 </div>
               </div>

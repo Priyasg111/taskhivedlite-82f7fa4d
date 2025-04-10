@@ -2,7 +2,9 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Clock, CheckCircle } from "lucide-react";
+import { DollarSign, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export interface TaskCardProps {
   id: string;
@@ -13,6 +15,7 @@ export interface TaskCardProps {
   category: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   status: 'Open' | 'In Progress' | 'Completed' | 'Verified';
+  requiredExperience: number; // Hours of experience required to accept this task
   onClick?: () => void;
 }
 
@@ -25,8 +28,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
   category,
   difficulty,
   status,
+  requiredExperience,
   onClick
 }) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
   const difficultyColor = {
     Easy: "bg-green-100 text-green-700",
     Medium: "bg-yellow-100 text-yellow-700",
@@ -38,6 +45,28 @@ const TaskCard: React.FC<TaskCardProps> = ({
     "In Progress": "bg-purple-100 text-purple-700",
     Completed: "bg-orange-100 text-orange-700",
     Verified: "bg-green-100 text-green-700"
+  };
+
+  const handleTaskAction = () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to work on tasks",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (status === 'Open' && user.experience < requiredExperience) {
+      toast({
+        title: "Insufficient experience",
+        description: `This task requires ${requiredExperience} hours of experience. You currently have ${user.experience} hours.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (onClick) onClick();
   };
 
   return (
@@ -62,13 +91,21 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <p className="text-sm text-muted-foreground line-clamp-2">
           {description}
         </p>
+        <div className="mt-2 flex items-center">
+          {requiredExperience > 0 && (
+            <Badge variant="outline" className="mr-2">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              {requiredExperience}+ hours required
+            </Badge>
+          )}
+        </div>
       </CardContent>
       <CardFooter className="px-6 pt-2 pb-6 flex justify-between">
         <div className="flex items-center text-sm text-muted-foreground">
           <Clock className="h-4 w-4 mr-1" />
           {estimatedTime}
         </div>
-        <Button onClick={onClick}>
+        <Button onClick={handleTaskAction}>
           {status === 'Open' ? 'Start Task' : status === 'In Progress' ? 'Submit Work' : status === 'Completed' ? 'View Status' : 'View Details'}
         </Button>
       </CardFooter>

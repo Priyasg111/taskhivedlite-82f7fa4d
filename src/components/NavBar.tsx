@@ -1,9 +1,12 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, DollarSign, FileCheck, Inbox } from "lucide-react";
+import { Search, DollarSign, User, LogOut } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const NavBar = () => {
+  const { user, logout } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="container flex h-16 items-center justify-between">
@@ -45,12 +48,34 @@ const NavBar = () => {
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
-          <Button variant="ghost" className="hidden md:flex gap-2">
-            Connect Wallet
-          </Button>
-          <Button variant="default" className="hidden md:inline-flex">
-            Get Started
-          </Button>
+          
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="hidden md:block">
+                <span className="text-sm text-muted-foreground">
+                  {user.name} ({user.experience} hrs experience)
+                </span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={logout}
+                className="h-9 w-9 rounded-full"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Log out</span>
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Button variant="ghost" className="hidden md:flex gap-2" asChild>
+                <Link to="/login">Log In</Link>
+              </Button>
+              <Button variant="default" className="hidden md:inline-flex" asChild>
+                <Link to="/signup">Sign Up</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

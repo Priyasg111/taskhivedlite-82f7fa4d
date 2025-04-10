@@ -1,24 +1,36 @@
 
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Upload, AlertCircle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface TaskCompletionFormProps {
-  id: string;
-  title: string;
-  description: string;
-  payment: number;
+  id?: string;
+  title?: string;
+  description?: string;
+  payment?: number;
 }
 
-export const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionFormProps) => {
+const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionFormProps) => {
+  const params = useParams();
+  const taskId = id || params.taskId;
   const [response, setResponse] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+  const { user, updateExperience } = useAuth();
+  const navigate = useNavigate();
+
+  // In a real app, you would fetch the task details based on the taskId
+  // For this demo, we'll use sample data when not provided via props
+  const taskTitle = title || "Data Labeling for AI Training";
+  const taskDescription = description || "Label 50 images of street scenes for our autonomous driving AI. Identify pedestrians, vehicles, road signs, and traffic lights.";
+  const taskPayment = payment || 15.00;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -28,6 +40,16 @@ export const TaskCompletionForm = ({ id, title, description, payment }: TaskComp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to submit tasks",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
     
     if (!response.trim()) {
       toast({
@@ -44,6 +66,11 @@ export const TaskCompletionForm = ({ id, title, description, payment }: TaskComp
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubmitted(true);
+      
+      // Add experience hours based on difficulty (estimation)
+      const experienceGained = 1; // 1 hour for completing this task
+      updateExperience(experienceGained);
+      
       toast({
         title: "Task submitted successfully!",
         description: "Your submission will be verified by our AI system.",
@@ -66,12 +93,17 @@ export const TaskCompletionForm = ({ id, title, description, payment }: TaskComp
         </CardHeader>
         <CardContent className="text-center">
           <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 mb-4">
-            <p className="text-lg font-medium text-amber-900">Payment of ${payment.toFixed(2)} is pending verification</p>
+            <p className="text-lg font-medium text-amber-900">Payment of ${taskPayment.toFixed(2)} is pending verification</p>
             <p className="text-sm text-amber-700">You will be notified once the verification is complete.</p>
+          </div>
+          
+          <div className="bg-green-50 border border-green-100 rounded-lg p-4 mt-4">
+            <p className="text-lg font-medium text-green-900">+1 hour of experience earned!</p>
+            <p className="text-sm text-green-700">You now have {user?.experience} hours of total experience.</p>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button variant="outline" onClick={() => window.location.href = "/complete-tasks"}>
+          <Button variant="outline" onClick={() => navigate("/complete-tasks")}>
             Find More Tasks
           </Button>
         </CardFooter>
@@ -83,16 +115,16 @@ export const TaskCompletionForm = ({ id, title, description, payment }: TaskComp
     <div className="w-full max-w-3xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>{taskTitle}</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Task ID: {id} • Payment: ${payment.toFixed(2)}
+            Task ID: {taskId} • Payment: ${taskPayment.toFixed(2)}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Task Description</h3>
             <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm">{description}</p>
+              <p className="text-sm">{taskDescription}</p>
             </div>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
