@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CustomUser } from "@/types/auth";
 import { toast } from "@/hooks/use-toast";
@@ -21,14 +20,11 @@ export const createUserProfile = async (userId: string): Promise<void> => {
     if (profileError.code === 'PGRST116') {
       console.log("Profile not found, creating manually...");
       
-      // Try using RPC function with type assertion to avoid TypeScript errors
-      const { error: insertError } = await supabase.rpc(
-        'create_user_profile',
-        {
-          user_uuid: userId,
-          user_role: 'worker'
-        } as any // Use type assertion to bypass strict type checking
-      );
+      // Try using RPC function with proper type casting
+      const { error: insertError } = await supabase.rpc<any>('create_user_profile', {
+        user_uuid: userId,
+        user_role: 'worker'
+      });
       
       if (insertError) {
         console.error('Manual profile creation failed:', insertError);
