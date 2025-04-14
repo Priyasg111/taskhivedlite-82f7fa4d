@@ -21,12 +21,8 @@ export const createUserProfile = async (userId: string, email: string, role: str
     if (profileError.code === 'PGRST116') {
       console.log("Profile not found, creating manually...");
       
-      // Try using RPC function with proper type casting for both return and params
-      const { error: insertError } = await supabase.rpc<{id: string, email: string, role: string}, {
-        user_uuid: string;
-        user_email: string;
-        user_role: string;
-      }>('create_user_profile', {
+      // Try using RPC function with proper type casting
+      const { error: insertError } = await supabase.rpc('create_user_profile', {
         user_uuid: userId,
         user_email: email,
         user_role: role
