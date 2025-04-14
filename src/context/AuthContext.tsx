@@ -141,8 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               user_role: string;
             };
             
-            // Fix: Correct the type parameters for rpc by using proper type for the result
-            const { error: insertError, data: insertData } = await supabase.rpc<Record<string, any>, CreateUserProfileParams>(
+            // Fix: Updated the rpc call to use the correct type parameters
+            const { error: insertError, data: insertData } = await supabase.rpc(
               'create_user_profile',
               {
                 user_uuid: data.user.id,
