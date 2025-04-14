@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -101,7 +100,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Signup Error Details:', error);
+        throw new Error(error.message || "Failed to create account");
+      }
       
       // In case auto-confirmation is enabled
       if (data.user) {
@@ -112,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(customUser);
       }
     } catch (error: any) {
+      console.error('Signup Catch Block Error:', error);
       throw new Error(error.message || "Failed to create account");
     } finally {
       setIsLoading(false);

@@ -72,13 +72,18 @@ const SignUpForm = () => {
     setIsLoading(true);
 
     try {
+      // Add more robust error handling
       await signup(formData.name, formData.email, formData.password);
+      
       toast({
         title: "Account created!",
         description: "Welcome to TaskHived. You can now start working on tasks.",
       });
+      
       navigate("/");
     } catch (error: any) {
+      console.error("Signup Error:", error);
+      
       toast({
         title: "Error creating account",
         description: error.message || "Something went wrong. Please try again.",
