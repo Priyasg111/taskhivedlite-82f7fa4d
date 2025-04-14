@@ -20,7 +20,7 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<CustomUser | void>;
   logout: () => void;
   updateExperience: (hours: number) => void;
 }
@@ -136,9 +136,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Profile not found, creating manually...");
             
             // Use RPC function to create profile with correct permissions
+            // Fix: Explicitly define parameter types for the RPC function
             const { error: insertError, data: insertData } = await supabase.rpc('create_user_profile', {
               user_uuid: data.user.id,
               user_role: 'worker'
+            } as {
+              user_uuid: string;
+              user_role: string;
             });
             
             if (insertError) {
