@@ -6,10 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Task } from "@/types/task";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const RecentPayouts = () => {
   const [completedPayouts, setCompletedPayouts] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payoutMethod, setPayoutMethod] = useState<string | null>(null);
   const { user } = useAuth();
   
   useEffect(() => {
@@ -17,6 +20,16 @@ const RecentPayouts = () => {
       if (!user) return;
       
       try {
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('payout_method')
+          .eq('id', user.id)
+          .single();
+          
+        if (profileData) {
+          setPayoutMethod(profileData.payout_method);
+        }
+          
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
@@ -64,11 +77,28 @@ const RecentPayouts = () => {
                 </div>
               </div>
             ))}
+            
+            {!payoutMethod && (
+              <div className="mt-4 p-3 rounded-md bg-yellow-50 text-yellow-800 text-sm">
+                <p>Your payment method is not configured. Set up your payment method to receive future payments.</p>
+                <Button variant="outline" size="sm" className="mt-2" asChild>
+                  <Link to="/payment-setup">Configure Payment Method</Link>
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center text-muted-foreground py-8">
             <DollarSign className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
             <p>No recent payouts</p>
+            {!payoutMethod && (
+              <>
+                <p className="mt-2 text-sm">Set up your payment method to receive payments</p>
+                <Button variant="outline" size="sm" className="mt-4" asChild>
+                  <Link to="/payment-setup">Configure Payment Method</Link>
+                </Button>
+              </>
+            )}
           </div>
         )}
       </CardContent>

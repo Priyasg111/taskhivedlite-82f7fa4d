@@ -10,6 +10,7 @@ import PostTask from "./pages/PostTask";
 import CompleteTasks from "./pages/CompleteTasks";
 import Payments from "./pages/Payments";
 import PaymentsDashboard from "./pages/PaymentsDashboard";
+import PaymentSetupPage from "./pages/PaymentSetupPage";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/complete-tasks/:taskId" element={<CompleteTasks />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/payments-dashboard" element={<PaymentsDashboard />} />
+            <Route path="/payment-setup" element={<PaymentSetupPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="*" element={<NotFound />} />

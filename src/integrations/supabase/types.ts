@@ -53,27 +53,42 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          country: string | null
           created_at: string
           credits: number
           id: string
+          kyc_status: string | null
+          payout_details: Json | null
+          payout_method: string | null
+          preferred_token: string | null
           role: string
           updated_at: string
           wallet_address: string | null
           wallet_status: string | null
         }
         Insert: {
+          country?: string | null
           created_at?: string
           credits?: number
           id: string
+          kyc_status?: string | null
+          payout_details?: Json | null
+          payout_method?: string | null
+          preferred_token?: string | null
           role?: string
           updated_at?: string
           wallet_address?: string | null
           wallet_status?: string | null
         }
         Update: {
+          country?: string | null
           created_at?: string
           credits?: number
           id?: string
+          kyc_status?: string | null
+          payout_details?: Json | null
+          payout_method?: string | null
+          preferred_token?: string | null
           role?: string
           updated_at?: string
           wallet_address?: string | null
