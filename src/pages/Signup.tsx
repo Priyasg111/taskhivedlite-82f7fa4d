@@ -6,15 +6,30 @@ import SignUpForm from "@/components/SignUpForm";
 import { useAuth } from "@/context/AuthContext";
 
 const Signup = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (user && !isLoading) {
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, isLoading, navigate]);
+
+  // Show loading state if auth state is still being determined
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NavBar />
+        <main className="flex-1 container py-12 px-4 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

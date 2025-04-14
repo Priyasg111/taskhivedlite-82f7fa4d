@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "@/components/ui/use-toast";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { useAuth } from "@/context/AuthContext";
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -18,6 +19,7 @@ const signupSchema = z.object({
 const SignUpForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -60,7 +62,7 @@ const SignUpForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -69,27 +71,22 @@ const SignUpForm = () => {
 
     setIsLoading(true);
 
-    // This would be an API call to register the user in a real app
-    // For now, we'll simulate a successful signup
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Store user data in localStorage (in a real app, you would handle tokens properly)
-      localStorage.setItem("user", JSON.stringify({
-        id: "user-" + Date.now(),
-        name: formData.name,
-        email: formData.email,
-        experience: 0, // New users start with 0 hours of experience
-        isAuthenticated: true,
-      }));
-      
+    try {
+      await signup(formData.name, formData.email, formData.password);
       toast({
         title: "Account created!",
         description: "Welcome to TaskHived. You can now start working on tasks.",
       });
-      
       navigate("/");
-    }, 1500);
+    } catch (error: any) {
+      toast({
+        title: "Error creating account",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
