@@ -32,10 +32,8 @@ interface Task {
   payment_status: string | null;
   created_at: string;
   updated_at: string;
-  clients?: {
-    name: string;
-    email: string;
-  };
+  client_name?: string;
+  client_email?: string;
 }
 
 const WorkerDashboard = () => {
@@ -73,18 +71,39 @@ const WorkerDashboard = () => {
       if (!user) return;
       
       try {
-        const { data, error } = await supabase
+        const { data: taskData, error } = await supabase
           .from('tasks')
-          .select(`
-            *,
-            clients:client_id(name)
-          `)
+          .select('*')
           .eq("worker_id", user.id)
           .eq("status", "verified")
           .eq("payment_status", "pending");
           
         if (error) throw error;
-        setPendingPayouts(data || []);
+        
+        // Enhance task data with client information
+        const enhancedTasks: Task[] = [];
+        
+        for (const task of taskData || []) {
+          const enhancedTask: Task = { ...task };
+          
+          // Get client info if client_id exists
+          if (task.client_id) {
+            const { data: clientData } = await supabase
+              .from('auth')
+              .select('email, raw_user_meta_data')
+              .eq('id', task.client_id)
+              .single();
+              
+            if (clientData) {
+              enhancedTask.client_email = clientData.email;
+              enhancedTask.client_name = clientData.raw_user_meta_data?.name || 'Unknown Client';
+            }
+          }
+          
+          enhancedTasks.push(enhancedTask);
+        }
+        
+        setPendingPayouts(enhancedTasks);
       } catch (error) {
         console.error("Error fetching pending payouts:", error);
       }

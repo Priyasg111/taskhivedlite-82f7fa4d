@@ -31,15 +31,12 @@ interface Task {
   payment_status: string | null;
   created_at: string;
   updated_at: string;
-  clients?: {
-    name?: string;
-    email?: string;
-  };
-  workers?: {
-    name?: string;
-    email?: string;
-    user_profiles?: UserProfile;
-  };
+  client_name?: string;
+  client_email?: string;
+  worker_name?: string;
+  worker_email?: string;
+  worker_wallet_address?: string | null;
+  worker_wallet_status?: string | null;
 }
 
 const AdminPanel = () => {
@@ -55,17 +52,64 @@ const AdminPanel = () => {
   const loadTasks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Get all tasks
+      const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
-        .select(`
-          *,
-          clients:client_id(name, email),
-          workers:worker_id(name, email, user_profiles(wallet_address, wallet_status))
-        `)
+        .select("*")
         .order("updated_at", { ascending: false });
         
-      if (error) throw error;
-      setTasks(data || []);
+      if (tasksError) throw tasksError;
+      
+      // Get additional user information separately
+      const enhancedTasks: Task[] = [];
+      
+      for (const task of tasksData || []) {
+        const enhancedTask: Task = { ...task };
+        
+        // Get client info if client_id exists
+        if (task.client_id) {
+          const { data: clientData } = await supabase
+            .from('auth')
+            .select('email, raw_user_meta_data')
+            .eq('id', task.client_id)
+            .single();
+            
+          if (clientData) {
+            enhancedTask.client_email = clientData.email;
+            enhancedTask.client_name = clientData.raw_user_meta_data?.name || 'Unknown Client';
+          }
+        }
+        
+        // Get worker info if worker_id exists
+        if (task.worker_id) {
+          const { data: workerData } = await supabase
+            .from('auth')
+            .select('email, raw_user_meta_data')
+            .eq('id', task.worker_id)
+            .single();
+            
+          if (workerData) {
+            enhancedTask.worker_email = workerData.email;
+            enhancedTask.worker_name = workerData.raw_user_meta_data?.name || 'Unknown Worker';
+          }
+          
+          // Get worker wallet info
+          const { data: workerProfile } = await supabase
+            .from('user_profiles')
+            .select('wallet_address, wallet_status')
+            .eq('id', task.worker_id)
+            .single();
+            
+          if (workerProfile) {
+            enhancedTask.worker_wallet_address = workerProfile.wallet_address;
+            enhancedTask.worker_wallet_status = workerProfile.wallet_status;
+          }
+        }
+        
+        enhancedTasks.push(enhancedTask);
+      }
+      
+      setTasks(enhancedTasks);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast({
@@ -94,7 +138,7 @@ const AdminPanel = () => {
       
       // Trigger payout flow via webhook to Make/Zebec
       const task = tasks.find(t => t.id === taskId);
-      const workerWalletAddress = task?.workers?.user_profiles?.wallet_address;
+      const workerWalletAddress = task?.worker_wallet_address;
       
       if (workerWalletAddress) {
         // In a real implementation, this would call an edge function to trigger Make/Zebec
