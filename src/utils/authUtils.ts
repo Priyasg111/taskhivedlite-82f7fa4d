@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CustomUser } from "@/types/auth";
 import { toast } from "@/hooks/use-toast";
+import { User } from "@supabase/supabase-js";
 
 /**
  * Attempts to create a user profile after signup
@@ -65,7 +66,7 @@ export const createUserProfile = async (userId: string): Promise<void> => {
 /**
  * Formats a user object with proper metadata
  */
-export const formatUserWithMetadata = (supabaseUser: SupabaseUser): CustomUser => {
+export const formatUserWithMetadata = (supabaseUser: User): CustomUser => {
   // Type cast and ensure user with metadata is properly set
   const customUser = supabaseUser as CustomUser;
   // Make sure name and experience are directly accessible

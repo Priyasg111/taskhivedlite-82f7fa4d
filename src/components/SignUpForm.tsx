@@ -2,20 +2,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
-const signupSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
-});
+import FormInput from "@/components/form/FormInput";
+import FormError from "@/components/form/FormError";
+import { SignupFormData, validateForm } from "@/components/form/ValidationSchema";
 
 const SignUpForm = () => {
   const navigate = useNavigate();
@@ -23,7 +15,7 @@ const SignUpForm = () => {
   const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SignupFormData>({
     name: "",
     email: "",
     password: "",
@@ -46,36 +38,16 @@ const SignUpForm = () => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
-    try {
-      signupSchema.parse(formData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        error.errors.forEach((err) => {
-          if (err.path) {
-            newErrors[err.path[0]] = err.message;
-          }
-        });
-      }
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError("");
     console.clear(); // Clear console for clean debugging
     console.log("Form submission started...");
     
-    if (!validateForm()) {
+    const formErrors = validateForm(formData);
+    setErrors(formErrors);
+    
+    if (Object.keys(formErrors).length > 0) {
       console.log("Form validation failed");
       return;
     }
@@ -150,67 +122,54 @@ const SignUpForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {generalError && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{generalError}</AlertDescription>
-          </Alert>
-        )}
+        <FormError error={generalError} />
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="John Doe"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-          </div>
+          <FormInput
+            id="name"
+            name="name"
+            label="Full Name"
+            placeholder="John Doe"
+            value={formData.name}
+            onChange={handleChange}
+            disabled={isLoading}
+            error={errors.name}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-            {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
-          </div>
+          <FormInput
+            id="email"
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={formData.email}
+            onChange={handleChange}
+            disabled={isLoading}
+            error={errors.email}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-            {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
-          </div>
+          <FormInput
+            id="password"
+            name="password"
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleChange}
+            disabled={isLoading}
+            error={errors.password}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="••••••••"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-            {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword}</p>}
-          </div>
+          <FormInput
+            id="confirmPassword"
+            name="confirmPassword"
+            label="Confirm Password"
+            type="password"
+            placeholder="••••••••"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            disabled={isLoading}
+            error={errors.confirmPassword}
+          />
           
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
