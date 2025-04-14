@@ -133,19 +133,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Profile check error:', profileError);
           // If profile doesn't exist, try to create it manually
           if (profileError.code === 'PGRST116') {
-            const { error: insertError } = await supabase
-              .from('user_profiles')
-              .insert([{ id: data.user.id, role: 'worker', experience: 0 }]);
-              
+            console.log("Profile not found, creating manually...");
+            
+            // Use RPC function to create profile with correct permissions
+            const { error: insertError, data: insertData } = await supabase.rpc('create_user_profile', {
+              user_uuid: data.user.id,
+              user_role: 'worker'
+            });
+            
             if (insertError) {
               console.error('Manual profile creation failed:', insertError);
-              toast({
-                title: "Warning",
-                description: "Account created but profile setup incomplete. Some features may be limited.",
-                variant: "destructive"
-              });
+              console.log("Trying direct insert as fallback...");
+              
+              // Fallback to direct insert if RPC fails
+              const { error: directInsertError } = await supabase
+                .from('user_profiles')
+                .insert([{ 
+                  id: data.user.id, 
+                  role: 'worker', 
+                  experience: 0,
+                  credits: 0
+                }]);
+                
+              if (directInsertError) {
+                console.error('Direct insert failed:', directInsertError);
+                toast({
+                  title: "Warning",
+                  description: "Account created but profile setup incomplete. Some features may be limited.",
+                  variant: "destructive"
+                });
+              } else {
+                console.log("Direct profile creation successful");
+              }
             } else {
-              console.log("Manual profile creation successful");
+              console.log("RPC profile creation successful:", insertData);
             }
           }
         } else {
@@ -157,9 +178,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Success!",
           description: "Your account has been created successfully.",
         });
+        
+        return customUser;
+      } else {
+        console.log("No user data returned from signup");
+        throw new Error("Failed to create user account");
       }
-      
-      // Don't return data here - this fixes the TypeScript error
     } catch (error: any) {
       console.error('Signup Catch Block Error:', error);
       

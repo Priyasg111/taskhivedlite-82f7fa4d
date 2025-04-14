@@ -72,28 +72,48 @@ const SignUpForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError("");
+    console.clear(); // Clear console for clean debugging
+    console.log("Form submission started...");
     
     if (!validateForm()) {
+      console.log("Form validation failed");
       return;
     }
 
     setIsLoading(true);
+    console.log("Form is valid, attempting signup for:", formData.email);
 
     try {
-      console.log("Form submission started for user:", formData.email);
+      // Show debug toast to confirm form submission
+      toast({
+        title: "Processing...",
+        description: "Attempting to create your account",
+      });
       
       // Force display any errors in UI by catching specifically here
       const result = await signup(formData.name, formData.email, formData.password)
         .catch(err => {
           console.error("Signup Error (inner catch):", err);
+          console.error("Error details:", JSON.stringify(err, null, 2));
+          
+          // Show a toast and set error state
+          toast({
+            title: "Signup Error",
+            description: err.message || "An error occurred during signup",
+            variant: "destructive"
+          });
+          
           setGeneralError(err.message || "An error occurred during signup");
           return null;
         });
       
       if (result === null) {
         // Error was caught and displayed in the inner catch
+        console.log("Signup failed in inner catch block");
         return;
       }
+      
+      console.log("Signup success, account created!");
       
       // Show explicit success message before navigation
       toast({
@@ -105,6 +125,7 @@ const SignUpForm = () => {
       navigate("/");
     } catch (error: any) {
       console.error("Signup Error (outer catch):", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
       
       // Make sure to always display an error message
       setGeneralError(error.message || "An unexpected error occurred. Please try again.");
