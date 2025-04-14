@@ -23,7 +23,7 @@ const NavBar = () => {
               className="h-10 w-10"
             />
             <span className="hidden sm:inline-block text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-400">
-              TaskHived <span className="text-sm text-neutral-500 ml-1">Next</span>
+              TaskHived
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
