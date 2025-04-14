@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import FormInput from "@/components/form/FormInput";
 import FormError from "@/components/form/FormError";
+import RoleSelector from "@/components/form/RoleSelector";
 import { SignupFormData, validateForm } from "@/components/form/ValidationSchema";
 
 const SignUpForm = () => {
@@ -15,11 +16,12 @@ const SignUpForm = () => {
   const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
-  const [formData, setFormData] = useState<SignupFormData>({
+  const [formData, setFormData] = useState<SignupFormData & { role: string }>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
+    role: "worker" // Default role
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -38,6 +40,10 @@ const SignUpForm = () => {
     }
   };
 
+  const handleRoleChange = (role: string) => {
+    setFormData((prev) => ({ ...prev, role }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError("");
@@ -53,7 +59,7 @@ const SignUpForm = () => {
     }
 
     setIsLoading(true);
-    console.log("Form is valid, attempting signup for:", formData.email);
+    console.log(`Form is valid, attempting signup for: ${formData.email} with role: ${formData.role}`);
 
     try {
       // Show debug toast to confirm form submission
@@ -63,7 +69,7 @@ const SignUpForm = () => {
       });
       
       // Force display any errors in UI by catching specifically here
-      const result = await signup(formData.name, formData.email, formData.password)
+      const result = await signup(formData.name, formData.email, formData.password, formData.role)
         .catch(err => {
           console.error("Signup Error (inner catch):", err);
           console.error("Error details:", JSON.stringify(err, null, 2));
@@ -169,6 +175,12 @@ const SignUpForm = () => {
             onChange={handleChange}
             disabled={isLoading}
             error={errors.confirmPassword}
+          />
+          
+          <RoleSelector 
+            selectedRole={formData.role}
+            onChange={handleRoleChange}
+            disabled={isLoading}
           />
           
           <Button type="submit" className="w-full" disabled={isLoading}>

@@ -7,7 +7,7 @@ import { User } from "@supabase/supabase-js";
 /**
  * Attempts to create a user profile after signup
  */
-export const createUserProfile = async (userId: string): Promise<void> => {
+export const createUserProfile = async (userId: string, email: string, role: string = 'worker'): Promise<void> => {
   // Let's check if user_profiles entry was created
   const { data: profileData, error: profileError } = await supabase
     .from('user_profiles')
@@ -22,9 +22,14 @@ export const createUserProfile = async (userId: string): Promise<void> => {
       console.log("Profile not found, creating manually...");
       
       // Try using RPC function with proper type casting for both return and params
-      const { error: insertError } = await supabase.rpc<any, any>('create_user_profile', {
+      const { error: insertError } = await supabase.rpc<{id: string, email: string, role: string}, {
+        user_uuid: string;
+        user_email: string;
+        user_role: string;
+      }>('create_user_profile', {
         user_uuid: userId,
-        user_role: 'worker'
+        user_email: email,
+        user_role: role
       });
       
       if (insertError) {
@@ -36,7 +41,8 @@ export const createUserProfile = async (userId: string): Promise<void> => {
           .from('user_profiles')
           .insert([{ 
             id: userId, 
-            role: 'worker', 
+            email: email,
+            role: role, 
             experience: 0,
             credits: 0
           }]);

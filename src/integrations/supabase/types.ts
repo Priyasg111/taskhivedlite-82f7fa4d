@@ -70,12 +70,14 @@ export type Database = {
           country: string | null
           created_at: string
           credits: number
+          email: string | null
           id: string
           kyc_status: string | null
           payout_details: Json | null
           payout_method: string | null
           preferred_token: string | null
           role: string
+          role_locked: boolean
           updated_at: string
           verified_tasks: number | null
           wallet_address: string | null
@@ -87,12 +89,14 @@ export type Database = {
           country?: string | null
           created_at?: string
           credits?: number
+          email?: string | null
           id: string
           kyc_status?: string | null
           payout_details?: Json | null
           payout_method?: string | null
           preferred_token?: string | null
           role?: string
+          role_locked?: boolean
           updated_at?: string
           verified_tasks?: number | null
           wallet_address?: string | null
@@ -104,12 +108,14 @@ export type Database = {
           country?: string | null
           created_at?: string
           credits?: number
+          email?: string | null
           id?: string
           kyc_status?: string | null
           payout_details?: Json | null
           payout_method?: string | null
           preferred_token?: string | null
           role?: string
+          role_locked?: boolean
           updated_at?: string
           verified_tasks?: number | null
           wallet_address?: string | null
@@ -122,7 +128,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_user_profile: {
+        Args: { user_uuid: string; user_email: string; user_role: string }
+        Returns: {
+          id: string
+          email: string
+          role: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

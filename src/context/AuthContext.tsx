@@ -62,11 +62,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (name: string, email: string, password: string) => {
+  const signup = async (name: string, email: string, password: string, role: string = 'worker') => {
     setIsLoading(true);
     
     try {
-      console.log("Starting signup process for:", email);
+      console.log(`Starting signup process for: ${email} with role: ${role}`);
       
       // First, attempt user creation
       const { error, data } = await supabase.auth.signUp({
@@ -75,7 +75,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           data: {
             name,
-            experience: 0 // New users start with 0 hours
+            experience: 0, // New users start with 0 hours
+            role // Store selected role in user metadata
           },
           emailRedirectTo: window.location.origin
         }
@@ -93,9 +94,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const customUser = formatUserWithMetadata(data.user);
         setUser(customUser);
         
-        await createUserProfile(data.user.id);
+        // Create user profile with role
+        await createUserProfile(data.user.id, email, role);
         
-        console.log("User created successfully:", customUser.id);
+        console.log(`User created successfully: ${customUser.id} with role: ${role}`);
         toast({
           title: "Success!",
           description: "Your account has been created successfully.",
