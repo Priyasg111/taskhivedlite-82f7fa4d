@@ -1,8 +1,9 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, DollarSign, User, LogOut } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import Logo from "@/assets/logo.png";  // We'll create this asset
 
 const NavBar = () => {
   const { user, logout } = useAuth();
@@ -12,7 +13,14 @@ const NavBar = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold bg-gradient-to-r from-brand-blue to-brand-teal text-transparent bg-clip-text">
+            <img 
+              src={Logo} 
+              alt="TaskHived Logo" 
+              className="h-10 w-10"
+            />
+            <span className="text-2xl font-bold" style={{
+              color: '#131313'  // Black from the logo
+            }}>
               TaskHived
             </span>
           </Link>

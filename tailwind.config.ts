@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -64,10 +63,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				brand: {
-					blue: '#FBB03B', // Changed to amber color
-					teal: '#F9A826', // Changed to darker amber
-					dark: '#131313', // Changed to near black
-					light: '#FFFBF2'  // Changed to light amber tint
+					black: '#131313',    // Dark nearly-black from logo
+					yellow: '#FEC6A1',   // Soft orange/yellow from logo
+					white: '#FFFFFF'     // White from logo background
 				},
 				amber: {
 					50: '#FFFBEB',
