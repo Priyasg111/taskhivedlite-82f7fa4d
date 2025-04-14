@@ -6,16 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     
@@ -24,36 +25,17 @@ const LoginForm = () => {
       return;
     }
 
-    setIsLoading(true);
-
-    // This would be an API call in a real application
-    // For now, we'll simulate a login with a stored user or reject if not found
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // In a real app, validate credentials against your backend
-      // For demo, just check if a user with this email exists in localStorage
-      const storedUserJSON = localStorage.getItem("user");
-      if (storedUserJSON) {
-        const storedUser = JSON.parse(storedUserJSON);
-        if (storedUser.email === email) {
-          // Update user status to authenticated
-          storedUser.isAuthenticated = true;
-          localStorage.setItem("user", JSON.stringify(storedUser));
-          
-          toast({
-            title: "Login successful!",
-            description: "Welcome back to TaskHived",
-          });
-          
-          navigate("/");
-        } else {
-          setError("Invalid email or password");
-        }
-      } else {
-        setError("No account found with this email");
-      }
-    }, 1000);
+    try {
+      await login(email, password);
+      toast({
+        title: "Login successful!",
+        description: "Welcome back to TaskHived",
+      });
+      navigate("/");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Invalid email or password";
+      setError(errorMessage);
+    }
   };
 
   return (

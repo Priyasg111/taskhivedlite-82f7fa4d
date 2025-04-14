@@ -1,7 +1,10 @@
 
 import NavBar from "@/components/NavBar";
 import Dashboard from "@/components/Dashboard";
+import ProjectDashboard from "@/components/ProjectDashboard";
+import MessageCenter from "@/components/MessageCenter";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 
@@ -44,7 +47,37 @@ const Index = () => {
             </div>
           </div>
         )}
-        <Dashboard />
+        
+        {user && (
+          <Tabs defaultValue="available-tasks" className="space-y-8">
+            <TabsList>
+              <TabsTrigger value="available-tasks">Available Tasks</TabsTrigger>
+              <TabsTrigger value="projects">Projects</TabsTrigger>
+              <TabsTrigger value="messages">Messages</TabsTrigger>
+              <TabsTrigger value="payments">Payments</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="available-tasks">
+              <Dashboard />
+            </TabsContent>
+            
+            <TabsContent value="projects">
+              <ProjectDashboard />
+            </TabsContent>
+            
+            <TabsContent value="messages">
+              <MessageCenter />
+            </TabsContent>
+            
+            <TabsContent value="payments">
+              <div className="py-4">
+                <Link to="/payments" className="text-brand-blue hover:underline">
+                  Go to full payment dashboard →
+                </Link>
+              </div>
+            </TabsContent>
+          </Tabs>
+        )}
       </main>
       <footer className="border-t py-6">
         <div className="container flex flex-col md:flex-row justify-between items-center gap-4">

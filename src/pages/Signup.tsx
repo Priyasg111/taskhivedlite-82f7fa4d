@@ -1,13 +1,26 @@
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import NavBar from "@/components/NavBar";
 import SignUpForm from "@/components/SignUpForm";
+import { useAuth } from "@/context/AuthContext";
 
 const Signup = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
-      <main className="flex-1 container py-12 px-4">
-        <div className="max-w-md mx-auto">
+      <main className="flex-1 container py-12 px-4 flex items-center justify-center">
+        <div className="max-w-md w-full">
           <SignUpForm />
         </div>
       </main>
