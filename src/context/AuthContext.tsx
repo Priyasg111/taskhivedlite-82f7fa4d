@@ -9,8 +9,8 @@ interface CustomUser extends SupabaseUser {
   name?: string;
   experience: number;
   user_metadata: {
-    name: string;
-    experience: number;
+    name?: string;
+    experience?: number;
   };
 }
 
@@ -93,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log("Starting signup process for:", email);
       
+      // First, attempt user creation
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
@@ -107,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Signup Error Details:', error);
-        throw new Error(error.message || "Failed to create account");
+        throw error;
       }
       
       console.log("Signup response:", data);
@@ -119,10 +120,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         customUser.name = name;
         customUser.experience = 0;
         setUser(customUser);
+        
+        console.log("User created successfully:", customUser.id);
       }
+      
+      return data;
     } catch (error: any) {
       console.error('Signup Catch Block Error:', error);
-      throw new Error(error.message || "Failed to create account");
+      
+      // Check for specific error patterns
+      if (error.message?.includes("User already registered")) {
+        throw new Error("This email is already registered. Please try logging in instead.");
+      } else if (error.message?.includes("permission denied") || error.message?.includes("Database error")) {
+        // This might be a permission issue with user_profiles - try to handle gracefully
+        console.error("Database permission error detected");
+        throw new Error("Unable to complete signup. The system is currently experiencing issues. Please try again later.");
+      } else {
+        throw new Error(error.message || "Failed to create account");
+      }
     } finally {
       setIsLoading(false);
     }

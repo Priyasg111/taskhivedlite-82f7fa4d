@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
@@ -72,7 +71,7 @@ const SignUpForm = () => {
     setIsLoading(true);
 
     try {
-      console.log("Form submission started");
+      console.log("Form submission started for user:", formData.email);
       await signup(formData.name, formData.email, formData.password);
       
       toast({
@@ -86,12 +85,6 @@ const SignUpForm = () => {
       
       // Provide more specific error messages based on known error patterns
       let errorMessage = error.message || "Something went wrong. Please try again.";
-      
-      if (errorMessage.includes("email already")) {
-        errorMessage = "This email is already registered. Try logging in instead.";
-      } else if (errorMessage.includes("permission denied") || errorMessage.includes("Database error")) {
-        errorMessage = "Database error. Please try again or contact support if the issue persists.";
-      }
       
       toast({
         title: "Error creating account",
