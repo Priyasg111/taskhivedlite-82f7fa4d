@@ -7,86 +7,86 @@
 
 @layer base {
   :root {
-    /* Updated color scheme to match TaskHive theme */
+    /* Updated color scheme to match TaskHived logo */
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 43 89% 62%;
-    --primary-foreground: 0 0% 10%;
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 60 5% 96%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
 
-    --muted: 60 5% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    --accent: 43 89% 94%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 45 93% 96%;
+    --accent-foreground: 240 6% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 43 89% 62%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 45 93% 47%;
 
     --radius: 0.5rem;
 
-    /* Sidebar colors matching TaskHive yellow/black theme */
-    --sidebar-background: 0 0% 10%;
+    /* Sidebar colors matching TaskHived yellow/black theme */
+    --sidebar-background: 240 10% 3.9%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 43 89% 62%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 0 0% 15%;
+    --sidebar-primary: 45 93% 47%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 240 4% 16%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 43 89% 62%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 45 93% 47%;
   }
 
   .dark {
-    --background: 0 0% 10%;
-    --foreground: 0 0% 100%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 100%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 43 89% 62%;
-    --primary-foreground: 0 0% 10%;
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 43 89% 62%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 45 93% 47%;
     
     /* Keep sidebar colors consistent in dark mode */
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 43 89% 62%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 43 89% 62%;
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 45 93% 47%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 45 93% 47%;
   }
 }
 
@@ -97,6 +97,11 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+  }
+  
+  /* Add smooth scrolling */
+  html {
+    scroll-behavior: smooth;
   }
 }
 
@@ -121,13 +126,42 @@
     @apply border border-input bg-background text-foreground;
   }
 
-  /* Adding TaskHive-inspired components */
+  /* Adding TaskHived-inspired components */
   .honeycomb-pattern {
     background-color: #f7f7f7;
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.5 60l26-15v30zm-26 15l26 15l26-15v-30l-26-15l-26 15zm52-30l26 15v-30z' fill='%23F6C549' fill-opacity='0.1'/%3E%3C/svg%3E");
   }
 
-  .btn-yellow {
-    @apply bg-yellow-500 hover:bg-yellow-600 text-black font-medium px-4 py-2 rounded-md transition-colors;
+  /* TaskHived button */
+  .btn-taskhived {
+    @apply bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-600 hover:to-yellow-500 text-black font-medium px-4 py-2 rounded-md transition-colors;
+  }
+  
+  /* Card with subtle hover effect */
+  .interactive-card {
+    @apply bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+  
+  /* Gradient text effect */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-400;
+  }
+  
+  /* Smooth hover underline effect */
+  .hover-underline {
+    @apply relative;
+  }
+  
+  .hover-underline::after {
+    @apply content-[""] absolute left-0 bottom-0 w-full h-0.5 bg-primary scale-x-0 origin-bottom-right transition-transform duration-300;
+  }
+  
+  .hover-underline:hover::after {
+    @apply scale-x-100 origin-bottom-left;
+  }
+  
+  /* Glass effect card */
+  .glass-card {
+    @apply bg-white/10 dark:bg-white/5 backdrop-blur-lg border border-white/20 dark:border-white/10 rounded-lg shadow-lg;
   }
 }
