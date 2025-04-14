@@ -135,19 +135,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (profileError.code === 'PGRST116') {
             console.log("Profile not found, creating manually...");
             
-            // Use RPC function to create profile with correct permissions
             // Define the RPC parameter types properly
             type CreateUserProfileParams = {
               user_uuid: string;
               user_role: string;
             };
             
-            const { error: insertError, data: insertData } = await supabase.rpc<any>(
+            // Fix: Specify both type parameters for rpc<TResult, TParams>
+            const { error: insertError, data: insertData } = await supabase.rpc<any, CreateUserProfileParams>(
               'create_user_profile',
               {
                 user_uuid: data.user.id,
                 user_role: 'worker'
-              } as CreateUserProfileParams
+              }
             );
             
             if (insertError) {
