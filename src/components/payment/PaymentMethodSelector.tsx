@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AlertTriangle, ArrowRight, Bank, Bitcoin, CreditCard } from "lucide-react";
+import { Building2, ArrowRight, Bitcoin, CreditCard } from "lucide-react";
 import { countryNames } from "./PaymentSetup";
 
 interface PaymentMethodSelectorProps {
@@ -39,7 +39,7 @@ const PaymentMethodSelector = ({
           >
             <div className="flex flex-col items-center text-center gap-3">
               <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <Bank className="h-6 w-6 text-blue-700" />
+                <Building2 className="h-6 w-6 text-blue-700" />
               </div>
               <div>
                 <h4 className="font-medium">Bank Transfer</h4>
