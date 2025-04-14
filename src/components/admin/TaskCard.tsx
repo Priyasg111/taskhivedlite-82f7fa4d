@@ -29,7 +29,7 @@ const TaskCard = ({ task, onApprove, onReject, processingTask, type }: TaskCardP
           </div>
           <Badge variant={
             type === 'pending' ? 'outline' :
-            type === 'verified' ? 'success' : 'destructive'
+            type === 'verified' ? 'secondary' : 'destructive'
           }>
             {type === 'pending' ? 'Pending' :
              type === 'verified' ? 'Verified' : 'Rejected'}

@@ -43,29 +43,39 @@ const AdminDataProvider = ({ children }: AdminDataProviderProps) => {
         
         // Get client info if client_id exists
         if (task.client_id) {
-          const { data: clientData } = await supabase
-            .from('auth')
-            .select('email, raw_user_meta_data')
-            .eq('id', task.client_id)
-            .single();
-            
-          if (clientData) {
-            enhancedTask.client_email = clientData.email;
-            enhancedTask.client_name = clientData.raw_user_meta_data?.name || 'Unknown Client';
+          // Using server-side fetching or separate API endpoint would be better
+          // For now, we're setting placeholders
+          enhancedTask.client_name = 'Client';
+          enhancedTask.client_email = 'client@example.com';
+          
+          try {
+            // This is a temporary solution - in a real app you would use a different approach
+            const { data } = await fetch(`/api/user/${task.client_id}`).then(res => res.json());
+            if (data) {
+              enhancedTask.client_name = data.name || 'Unknown Client';
+              enhancedTask.client_email = data.email;
+            }
+          } catch (err) {
+            console.error("Error fetching client data:", err);
           }
         }
         
         // Get worker info if worker_id exists
         if (task.worker_id) {
-          const { data: workerData } = await supabase
-            .from('auth')
-            .select('email, raw_user_meta_data')
-            .eq('id', task.worker_id)
-            .single();
-            
-          if (workerData) {
-            enhancedTask.worker_email = workerData.email;
-            enhancedTask.worker_name = workerData.raw_user_meta_data?.name || 'Unknown Worker';
+          // Using server-side fetching or separate API endpoint would be better
+          // For now, we're setting placeholders
+          enhancedTask.worker_name = 'Worker';
+          enhancedTask.worker_email = 'worker@example.com';
+          
+          try {
+            // This is a temporary solution - in a real app you would use a different approach
+            const { data } = await fetch(`/api/user/${task.worker_id}`).then(res => res.json());
+            if (data) {
+              enhancedTask.worker_name = data.name || 'Unknown Worker';
+              enhancedTask.worker_email = data.email;
+            }
+          } catch (err) {
+            console.error("Error fetching worker data:", err);
           }
           
           // Get worker wallet info
