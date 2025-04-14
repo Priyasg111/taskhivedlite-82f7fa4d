@@ -9,6 +9,17 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define the interface to match our database table
+interface UserProfile {
+  id: string;
+  role: 'admin' | 'client' | 'worker';
+  credits: number;
+  wallet_address: string | null;
+  wallet_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const PaymentsDashboard = () => {
   const { user } = useAuth();
   const [userRole, setUserRole] = useState<"admin" | "client" | "worker" | null>(null);
@@ -24,7 +35,7 @@ const PaymentsDashboard = () => {
     const fetchUserRole = async () => {
       try {
         const { data, error } = await supabase
-          .from("user_profiles")
+          .from('user_profiles')
           .select("role")
           .eq("id", user.id)
           .single();
@@ -32,7 +43,7 @@ const PaymentsDashboard = () => {
         if (error) throw error;
         
         // Set user role (default to worker if not specified)
-        setUserRole(data?.role || "worker");
+        setUserRole((data?.role as "admin" | "client" | "worker") || "worker");
       } catch (error) {
         console.error("Error fetching user role:", error);
         setUserRole("worker"); // Default

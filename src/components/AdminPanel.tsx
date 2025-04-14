@@ -8,9 +8,43 @@ import { CheckCircle, X, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define interfaces to match our database tables
+interface UserProfile {
+  id: string;
+  role: 'admin' | 'client' | 'worker';
+  credits: number;
+  wallet_address: string | null;
+  wallet_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Task {
+  id: string;
+  client_id: string;
+  worker_id: string | null;
+  title: string;
+  description: string;
+  payment: number;
+  time_taken: number | null;
+  status: string;
+  payment_status: string | null;
+  created_at: string;
+  updated_at: string;
+  clients?: {
+    name?: string;
+    email?: string;
+  };
+  workers?: {
+    name?: string;
+    email?: string;
+    user_profiles?: UserProfile;
+  };
+}
+
 const AdminPanel = () => {
   const { toast } = useToast();
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [processingTask, setProcessingTask] = useState<string | null>(null);
   
@@ -22,7 +56,7 @@ const AdminPanel = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .select(`
           *,
           clients:client_id(name, email),
@@ -49,7 +83,7 @@ const AdminPanel = () => {
     try {
       // Update task status
       const { error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .update({
           status: "verified",
           payment_status: "pending",
@@ -69,7 +103,7 @@ const AdminPanel = () => {
         
         // Update the task payment status
         await supabase
-          .from("tasks")
+          .from('tasks')
           .update({
             payment_status: "processing",
           })
@@ -98,7 +132,7 @@ const AdminPanel = () => {
     setProcessingTask(taskId);
     try {
       const { error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .update({
           status: "rejected",
         })

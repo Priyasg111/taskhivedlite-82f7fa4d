@@ -9,13 +9,42 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define interfaces to match our database tables
+interface UserProfile {
+  id: string;
+  role: 'admin' | 'client' | 'worker';
+  credits: number;
+  wallet_address: string | null;
+  wallet_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Task {
+  id: string;
+  client_id: string;
+  worker_id: string | null;
+  title: string;
+  description: string;
+  payment: number;
+  time_taken: number | null;
+  status: string;
+  payment_status: string | null;
+  created_at: string;
+  updated_at: string;
+  clients?: {
+    name: string;
+    email: string;
+  };
+}
+
 const WorkerDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [walletAddress, setWalletAddress] = useState("");
   const [walletStatus, setWalletStatus] = useState<"verified" | "unverified" | "none">("none");
   const [isConnecting, setIsConnecting] = useState(false);
-  const [pendingPayouts, setPendingPayouts] = useState<any[]>([]);
+  const [pendingPayouts, setPendingPayouts] = useState<Task[]>([]);
   const [emailWallet, setEmailWallet] = useState("");
   
   useEffect(() => {
@@ -24,7 +53,7 @@ const WorkerDashboard = () => {
       
       try {
         const { data, error } = await supabase
-          .from("user_profiles")
+          .from('user_profiles')
           .select("wallet_address, wallet_status")
           .eq("id", user.id)
           .single();
@@ -33,7 +62,7 @@ const WorkerDashboard = () => {
         
         if (data?.wallet_address) {
           setWalletAddress(data.wallet_address);
-          setWalletStatus(data.wallet_status || "unverified");
+          setWalletStatus((data.wallet_status as "verified" | "unverified" | "none") || "unverified");
         }
       } catch (error) {
         console.error("Error fetching wallet info:", error);
@@ -45,8 +74,11 @@ const WorkerDashboard = () => {
       
       try {
         const { data, error } = await supabase
-          .from("tasks")
-          .select("*, clients:client_id(name)")
+          .from('tasks')
+          .select(`
+            *,
+            clients:client_id(name)
+          `)
           .eq("worker_id", user.id)
           .eq("status", "verified")
           .eq("payment_status", "pending");
@@ -74,7 +106,7 @@ const WorkerDashboard = () => {
       
       // Update the database
       const { error } = await supabase
-        .from("user_profiles")
+        .from('user_profiles')
         .update({
           wallet_address: mockWalletAddress,
           wallet_status: "verified"
@@ -120,7 +152,7 @@ const WorkerDashboard = () => {
       
       // Update the database
       const { error } = await supabase
-        .from("user_profiles")
+        .from('user_profiles')
         .update({
           wallet_address: emailWallet,
           wallet_status: "verified"

@@ -8,6 +8,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define interface to match our database table
+interface UserProfile {
+  id: string;
+  role: 'admin' | 'client' | 'worker';
+  credits: number;
+  wallet_address: string | null;
+  wallet_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const ClientDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -21,13 +32,13 @@ const ClientDashboard = () => {
       
       try {
         const { data, error } = await supabase
-          .from("user_profiles")
+          .from('user_profiles')
           .select("credits")
           .eq("id", user.id)
           .single();
           
         if (error) throw error;
-        setCredits(data.credits || 0);
+        setCredits(data?.credits || 0);
       } catch (error) {
         console.error("Error fetching credits:", error);
         toast({

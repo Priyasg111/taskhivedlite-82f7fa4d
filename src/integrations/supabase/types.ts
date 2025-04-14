@@ -9,7 +9,78 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      tasks: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string
+          id: string
+          payment: number
+          payment_status: string | null
+          status: string
+          time_taken: number | null
+          title: string
+          updated_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description: string
+          id?: string
+          payment: number
+          payment_status?: string | null
+          status?: string
+          time_taken?: number | null
+          title: string
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          payment?: number
+          payment_status?: string | null
+          status?: string
+          time_taken?: number | null
+          title?: string
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          credits: number
+          id: string
+          role: string
+          updated_at: string
+          wallet_address: string | null
+          wallet_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          id: string
+          role?: string
+          updated_at?: string
+          wallet_address?: string | null
+          wallet_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          id?: string
+          role?: string
+          updated_at?: string
+          wallet_address?: string | null
+          wallet_status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
