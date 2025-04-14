@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -65,21 +64,21 @@ export default {
 				},
 				brand: {
 					black: '#1A1A1A',    // Dark black from logo
-					yellow: '#F6C549',   // Yellow from logo
+					yellow: '#F6C549',   // Exact yellow from logo
 					white: '#FFFFFF'     // White for contrast
 				},
 				yellow: {
-					50: '#FFFDF5',
-					100: '#FEF8E4',
-					200: '#FDF0C4',
-					300: '#FBE394',
-					400: '#F9D260',
-					500: '#F6C549',
-					600: '#F4A730',
-					700: '#E07C12',
-					800: '#BC570F',
-					900: '#7A3A0F',
-					950: '#451F09',
+					50: '#FFFDF5',   // Lightest yellow, very soft
+					100: '#FEF8E4',  // Light yellow, close to logo
+					200: '#FDF0C4',  // Soft yellow
+					300: '#FBE394',  // Slightly deeper yellow
+					400: '#F9D260',  // Medium yellow
+					500: '#F6C549',  // Logo's exact yellow
+					600: '#F4A730',  // Slightly darker for hover states
+					700: '#E07C12',  // Deep yellow
+					800: '#BC570F',  // Darker yellow
+					900: '#7A3A0F',  // Very dark yellow
+					950: '#451F09',  // Almost brownish yellow
 				}
 			},
 			borderRadius: {
