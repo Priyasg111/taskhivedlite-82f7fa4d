@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("User created successfully:", customUser.id);
       }
       
-      return data;
+      // Don't return data here - this fixes the TypeScript error
     } catch (error: any) {
       console.error('Signup Catch Block Error:', error);
       
