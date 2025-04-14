@@ -81,15 +81,40 @@ const SignUpForm = () => {
 
     try {
       console.log("Form submission started for user:", formData.email);
-      await signup(formData.name, formData.email, formData.password);
+      
+      // Force display any errors in UI by catching specifically here
+      const result = await signup(formData.name, formData.email, formData.password)
+        .catch(err => {
+          console.error("Signup Error (inner catch):", err);
+          setGeneralError(err.message || "An error occurred during signup");
+          return null;
+        });
+      
+      if (result === null) {
+        // Error was caught and displayed in the inner catch
+        return;
+      }
+      
+      // Show explicit success message before navigation
+      toast({
+        title: "Account created!",
+        description: "Your account was created successfully.",
+      });
       
       // Navigate to homepage on successful signup
       navigate("/");
     } catch (error: any) {
-      console.error("Signup Error:", error);
+      console.error("Signup Error (outer catch):", error);
       
-      // Display error message
+      // Make sure to always display an error message
       setGeneralError(error.message || "An unexpected error occurred. Please try again.");
+      
+      // Also show a toast for better visibility
+      toast({
+        title: "Error creating account",
+        description: error.message || "Failed to create account. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
