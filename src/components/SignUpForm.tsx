@@ -72,7 +72,7 @@ const SignUpForm = () => {
     setIsLoading(true);
 
     try {
-      // Add more robust error handling
+      console.log("Form submission started");
       await signup(formData.name, formData.email, formData.password);
       
       toast({
@@ -84,9 +84,18 @@ const SignUpForm = () => {
     } catch (error: any) {
       console.error("Signup Error:", error);
       
+      // Provide more specific error messages based on known error patterns
+      let errorMessage = error.message || "Something went wrong. Please try again.";
+      
+      if (errorMessage.includes("email already")) {
+        errorMessage = "This email is already registered. Try logging in instead.";
+      } else if (errorMessage.includes("permission denied") || errorMessage.includes("Database error")) {
+        errorMessage = "Database error. Please try again or contact support if the issue persists.";
+      }
+      
       toast({
         title: "Error creating account",
-        description: error.message || "Something went wrong. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

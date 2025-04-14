@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -35,13 +36,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         setSession(session);
         if (session?.user) {
           // Type cast and ensure user with metadata is properly set
           const customUser = session.user as CustomUser;
           // Make sure name and experience are directly accessible
-          customUser.name = customUser.user_metadata.name;
-          customUser.experience = customUser.user_metadata.experience || 0;
+          customUser.name = customUser.user_metadata?.name || '';
+          customUser.experience = customUser.user_metadata?.experience || 0;
           setUser(customUser);
         } else {
           setUser(null);
@@ -56,8 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Type cast and ensure user with metadata is properly set
         const customUser = session.user as CustomUser;
         // Make sure name and experience are directly accessible
-        customUser.name = customUser.user_metadata.name;
-        customUser.experience = customUser.user_metadata.experience || 0;
+        customUser.name = customUser.user_metadata?.name || '';
+        customUser.experience = customUser.user_metadata?.experience || 0;
         setUser(customUser);
       } else {
         setUser(null);
@@ -89,6 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      console.log("Starting signup process for:", email);
+      
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
@@ -96,7 +100,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
             experience: 0 // New users start with 0 hours
-          }
+          },
+          emailRedirectTo: window.location.origin
         }
       });
       
@@ -104,6 +109,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Signup Error Details:', error);
         throw new Error(error.message || "Failed to create account");
       }
+      
+      console.log("Signup response:", data);
       
       // In case auto-confirmation is enabled
       if (data.user) {
