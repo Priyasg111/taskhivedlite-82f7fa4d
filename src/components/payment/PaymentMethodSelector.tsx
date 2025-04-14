@@ -1,7 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Building2, ArrowRight, Bitcoin, CreditCard } from "lucide-react";
+import { Building2, ArrowRight, Bitcoin, CreditCard, AlertTriangle } from "lucide-react";
 import { countryNames } from "./PaymentSetup";
 
 interface PaymentMethodSelectorProps {
