@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -20,6 +22,7 @@ const SignUpForm = () => {
   const { toast } = useToast();
   const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [generalError, setGeneralError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,6 +38,11 @@ const SignUpForm = () => {
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    
+    // Clear general error when any field changes
+    if (generalError) {
+      setGeneralError("");
     }
   };
 
@@ -63,6 +71,7 @@ const SignUpForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGeneralError("");
     
     if (!validateForm()) {
       return;
@@ -74,23 +83,13 @@ const SignUpForm = () => {
       console.log("Form submission started for user:", formData.email);
       await signup(formData.name, formData.email, formData.password);
       
-      toast({
-        title: "Account created!",
-        description: "Welcome to TaskHived. You can now start working on tasks.",
-      });
-      
+      // Navigate to homepage on successful signup
       navigate("/");
     } catch (error: any) {
       console.error("Signup Error:", error);
       
-      // Provide more specific error messages based on known error patterns
-      let errorMessage = error.message || "Something went wrong. Please try again.";
-      
-      toast({
-        title: "Error creating account",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      // Display error message
+      setGeneralError(error.message || "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -105,6 +104,12 @@ const SignUpForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {generalError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{generalError}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>

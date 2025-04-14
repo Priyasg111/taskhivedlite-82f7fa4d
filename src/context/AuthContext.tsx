@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { toast } from '@/hooks/use-toast';
 
 // Extend the Supabase User type to include our custom metadata
 interface CustomUser extends SupabaseUser {
@@ -121,7 +122,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         customUser.experience = 0;
         setUser(customUser);
         
+        // Let's check if user_profiles entry was created
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select()
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profileError) {
+          console.error('Profile check error:', profileError);
+          // If profile doesn't exist, try to create it manually
+          if (profileError.code === 'PGRST116') {
+            const { error: insertError } = await supabase
+              .from('user_profiles')
+              .insert([{ id: data.user.id, role: 'worker', experience: 0 }]);
+              
+            if (insertError) {
+              console.error('Manual profile creation failed:', insertError);
+              toast({
+                title: "Warning",
+                description: "Account created but profile setup incomplete. Some features may be limited.",
+                variant: "destructive"
+              });
+            } else {
+              console.log("Manual profile creation successful");
+            }
+          }
+        } else {
+          console.log("User profile exists:", profileData);
+        }
+        
         console.log("User created successfully:", customUser.id);
+        toast({
+          title: "Success!",
+          description: "Your account has been created successfully.",
+        });
       }
       
       // Don't return data here - this fixes the TypeScript error
