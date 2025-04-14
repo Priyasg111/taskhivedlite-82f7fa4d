@@ -4,26 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
-
-// Extend the Supabase User type to include our custom metadata
-interface CustomUser extends SupabaseUser {
-  name?: string;
-  experience: number;
-  user_metadata: {
-    name?: string;
-    experience?: number;
-  };
-}
-
-interface AuthContextType {
-  user: CustomUser | null;
-  session: Session | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<CustomUser | void>;
-  logout: () => void;
-  updateExperience: (hours: number) => void;
-}
+import { AuthContextType, CustomUser } from '@/types/auth';
+import { createUserProfile, formatUserWithMetadata } from '@/utils/authUtils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -40,11 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("Auth state changed:", event, session?.user?.id);
         setSession(session);
         if (session?.user) {
-          // Type cast and ensure user with metadata is properly set
-          const customUser = session.user as CustomUser;
-          // Make sure name and experience are directly accessible
-          customUser.name = customUser.user_metadata?.name || '';
-          customUser.experience = customUser.user_metadata?.experience || 0;
+          const customUser = formatUserWithMetadata(session.user);
           setUser(customUser);
         } else {
           setUser(null);
@@ -56,11 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
-        // Type cast and ensure user with metadata is properly set
-        const customUser = session.user as CustomUser;
-        // Make sure name and experience are directly accessible
-        customUser.name = customUser.user_metadata?.name || '';
-        customUser.experience = customUser.user_metadata?.experience || 0;
+        const customUser = formatUserWithMetadata(session.user);
         setUser(customUser);
       } else {
         setUser(null);
@@ -116,71 +90,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // In case auto-confirmation is enabled
       if (data.user) {
-        // Type cast and add the properties
-        const customUser = data.user as CustomUser;
-        customUser.name = name;
-        customUser.experience = 0;
+        const customUser = formatUserWithMetadata(data.user);
         setUser(customUser);
         
-        // Let's check if user_profiles entry was created
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select()
-          .eq('id', data.user.id)
-          .single();
-          
-        if (profileError) {
-          console.error('Profile check error:', profileError);
-          // If profile doesn't exist, try to create it manually
-          if (profileError.code === 'PGRST116') {
-            console.log("Profile not found, creating manually...");
-            
-            // Define the RPC parameter types properly
-            type CreateUserProfileParams = {
-              user_uuid: string;
-              user_role: string;
-            };
-            
-            // Fix: Updated the rpc call to use the correct type parameters
-            const { error: insertError, data: insertData } = await supabase.rpc(
-              'create_user_profile',
-              {
-                user_uuid: data.user.id,
-                user_role: 'worker'
-              }
-            );
-            
-            if (insertError) {
-              console.error('Manual profile creation failed:', insertError);
-              console.log("Trying direct insert as fallback...");
-              
-              // Fallback to direct insert if RPC fails
-              const { error: directInsertError } = await supabase
-                .from('user_profiles')
-                .insert([{ 
-                  id: data.user.id, 
-                  role: 'worker', 
-                  experience: 0,
-                  credits: 0
-                }]);
-                
-              if (directInsertError) {
-                console.error('Direct insert failed:', directInsertError);
-                toast({
-                  title: "Warning",
-                  description: "Account created but profile setup incomplete. Some features may be limited.",
-                  variant: "destructive"
-                });
-              } else {
-                console.log("Direct profile creation successful");
-              }
-            } else {
-              console.log("RPC profile creation successful:", insertData);
-            }
-          }
-        } else {
-          console.log("User profile exists:", profileData);
-        }
+        await createUserProfile(data.user.id);
         
         console.log("User created successfully:", customUser.id);
         toast({
