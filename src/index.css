@@ -7,86 +7,86 @@
 
 @layer base {
   :root {
-    /* Updated color scheme to match TaskHived theme */
+    /* Updated color scheme to match TaskHive theme */
     --background: 0 0% 100%;
-    --foreground: 20 10% 10%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 10% 10%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 10% 10%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 43 96% 56%;
-    --primary-foreground: 20 10% 10%;
+    --primary: 43 89% 62%;
+    --primary-foreground: 0 0% 10%;
 
     --secondary: 60 5% 96%;
-    --secondary-foreground: 20 10% 10%;
+    --secondary-foreground: 0 0% 10%;
 
     --muted: 60 5% 96%;
-    --muted-foreground: 20 7% 45%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 43 96% 94%;
-    --accent-foreground: 20 10% 10%;
+    --accent: 43 89% 94%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 20 5% 90%;
-    --input: 20 5% 90%;
-    --ring: 43 96% 56%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 43 89% 62%;
 
     --radius: 0.5rem;
 
-    /* Sidebar colors matching TaskHived amber/black theme */
-    --sidebar-background: 20 10% 10%;
+    /* Sidebar colors matching TaskHive yellow/black theme */
+    --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 43 96% 56%;
-    --sidebar-primary-foreground: 20 10% 10%;
-    --sidebar-accent: 20 10% 15%;
+    --sidebar-primary: 43 89% 62%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 15%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 20 10% 15%;
-    --sidebar-ring: 43 96% 56%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 43 89% 62%;
   }
 
   .dark {
-    --background: 20 10% 10%;
+    --background: 0 0% 10%;
     --foreground: 0 0% 100%;
 
-    --card: 20 10% 10%;
+    --card: 0 0% 10%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 20 10% 10%;
+    --popover: 0 0% 10%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 43 96% 56%;
-    --primary-foreground: 20 10% 10%;
+    --primary: 43 89% 62%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 20 5% 15%;
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 20 10% 15%;
-    --muted-foreground: 20 5% 65%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 20 5% 15%;
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 20 10% 15%;
-    --input: 20 10% 15%;
-    --ring: 43 96% 56%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 43 89% 62%;
     
     /* Keep sidebar colors consistent in dark mode */
-    --sidebar-background: 20 10% 10%;
+    --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 43 96% 56%;
-    --sidebar-primary-foreground: 20 10% 10%;
-    --sidebar-accent: 20 10% 15%;
+    --sidebar-primary: 43 89% 62%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 15%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 20 10% 15%;
-    --sidebar-ring: 43 96% 56%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 43 89% 62%;
   }
 }
 
@@ -121,13 +121,13 @@
     @apply border border-input bg-background text-foreground;
   }
 
-  /* Adding TaskHived-inspired components */
+  /* Adding TaskHive-inspired components */
   .honeycomb-pattern {
     background-color: #f7f7f7;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.5 60l26-15v30zm-26 15l26 15l26-15v-30l-26-15l-26 15zm52-30l26 15v-30z' fill='%23FBBF24' fill-opacity='0.1'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.5 60l26-15v30zm-26 15l26 15l26-15v-30l-26-15l-26 15zm52-30l26 15v-30z' fill='%23F6C549' fill-opacity='0.1'/%3E%3C/svg%3E");
   }
 
-  .btn-amber {
-    @apply bg-amber-400 hover:bg-amber-500 text-black font-medium px-4 py-2 rounded-md transition-colors;
+  .btn-yellow {
+    @apply bg-yellow-500 hover:bg-yellow-600 text-black font-medium px-4 py-2 rounded-md transition-colors;
   }
 }

@@ -18,13 +18,13 @@ const Index = () => {
         {!user && (
           <div className="mb-12 py-12 text-center">
             <h1 className="text-4xl font-bold mb-4">
-              Complete Tasks, Earn Crypto - <span className="bg-gradient-to-r from-brand-blue to-brand-teal text-transparent bg-clip-text">Verified by AI</span>
+              Complete Tasks, Earn Rewards - <span className="text-yellow-500">Verified by AI</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Join TaskHived to work on microtasks from anywhere. Our AI system verifies your work, ensuring fair payment for quality results.
+              Join TaskHive to work on microtasks from anywhere. Our AI system verifies your work, ensuring fair payment for quality results.
             </p>
             <div className="flex justify-center gap-4">
-              <Button size="lg" asChild>
+              <Button size="lg" asChild className="bg-yellow-500 hover:bg-yellow-600 text-black">
                 <Link to="/signup">Sign Up Now</Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
@@ -32,15 +32,15 @@ const Index = () => {
               </Button>
             </div>
             <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-muted/50 p-6 rounded-lg">
+              <div className="bg-muted/50 p-6 rounded-lg border border-yellow-200">
                 <h3 className="text-lg font-medium mb-2">Flexible Work</h3>
                 <p className="text-muted-foreground">Complete tasks anywhere, anytime. Work as much or as little as you want.</p>
               </div>
-              <div className="bg-muted/50 p-6 rounded-lg">
+              <div className="bg-muted/50 p-6 rounded-lg border border-yellow-200">
                 <h3 className="text-lg font-medium mb-2">Instant Verification</h3>
                 <p className="text-muted-foreground">Our AI system verifies your work immediately, so you get paid faster.</p>
               </div>
-              <div className="bg-muted/50 p-6 rounded-lg">
+              <div className="bg-muted/50 p-6 rounded-lg border border-yellow-200">
                 <h3 className="text-lg font-medium mb-2">Crypto Payments</h3>
                 <p className="text-muted-foreground">Receive payments in cryptocurrency directly to your wallet.</p>
               </div>
@@ -71,7 +71,7 @@ const Index = () => {
             
             <TabsContent value="payments">
               <div className="py-4">
-                <Link to="/payments" className="text-brand-blue hover:underline">
+                <Link to="/payments" className="text-yellow-500 hover:underline">
                   Go to full payment dashboard →
                 </Link>
               </div>
@@ -82,7 +82,7 @@ const Index = () => {
       <footer className="border-t py-6">
         <div className="container flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            © 2025 TaskHived - AI-Verified Microtask Marketplace
+            © 2025 TaskHive - AI-Verified Microtask Marketplace
           </div>
           <div className="flex gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
