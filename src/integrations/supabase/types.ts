@@ -12,12 +12,16 @@ export type Database = {
       tasks: {
         Row: {
           client_id: string
+          comment: string | null
           created_at: string
           description: string
           id: string
           payment: number
           payment_status: string | null
+          reviewed_by_ai: boolean | null
+          score: number | null
           status: string
+          submission_text: string | null
           time_taken: number | null
           title: string
           updated_at: string
@@ -25,12 +29,16 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          comment?: string | null
           created_at?: string
           description: string
           id?: string
           payment: number
           payment_status?: string | null
+          reviewed_by_ai?: boolean | null
+          score?: number | null
           status?: string
+          submission_text?: string | null
           time_taken?: number | null
           title: string
           updated_at?: string
@@ -38,12 +46,16 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          comment?: string | null
           created_at?: string
           description?: string
           id?: string
           payment?: number
           payment_status?: string | null
+          reviewed_by_ai?: boolean | null
+          score?: number | null
           status?: string
+          submission_text?: string | null
           time_taken?: number | null
           title?: string
           updated_at?: string
@@ -53,6 +65,8 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          avg_score: number | null
+          badge_level: string | null
           country: string | null
           created_at: string
           credits: number
@@ -63,10 +77,13 @@ export type Database = {
           preferred_token: string | null
           role: string
           updated_at: string
+          verified_tasks: number | null
           wallet_address: string | null
           wallet_status: string | null
         }
         Insert: {
+          avg_score?: number | null
+          badge_level?: string | null
           country?: string | null
           created_at?: string
           credits?: number
@@ -77,10 +94,13 @@ export type Database = {
           preferred_token?: string | null
           role?: string
           updated_at?: string
+          verified_tasks?: number | null
           wallet_address?: string | null
           wallet_status?: string | null
         }
         Update: {
+          avg_score?: number | null
+          badge_level?: string | null
           country?: string | null
           created_at?: string
           credits?: number
@@ -91,6 +111,7 @@ export type Database = {
           preferred_token?: string | null
           role?: string
           updated_at?: string
+          verified_tasks?: number | null
           wallet_address?: string | null
           wallet_status?: string | null
         }

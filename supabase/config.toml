@@ -1,1 +1,14 @@
+
 project_id = "ezyngxcqvmuljfkmgjgs"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[db]
+port = 54322
+
+[functions]
+[functions.verify-task]
+verify_jwt = true

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,8 @@ import { CheckCircle, Upload, AlertCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import AIVerification from "@/components/AIVerification";
+import { supabase } from "@/integrations/supabase/client";
+import BadgeIcon from "./user/BadgeIcon";
 
 interface TaskCompletionFormProps {
   id?: string;
@@ -30,6 +31,8 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
   const [verificationProgress, setVerificationProgress] = useState(0);
   const [verificationScore, setVerificationScore] = useState(0);
   const [showVerification, setShowVerification] = useState(false);
+  const [userBadge, setUserBadge] = useState<string | null>(null);
+  const [badgeUpgraded, setBadgeUpgraded] = useState(false);
   
   const { toast } = useToast();
   const { user, updateExperience } = useAuth();
@@ -40,6 +43,28 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
   const taskTitle = title || "Data Labeling for AI Training";
   const taskDescription = description || "Label 50 images of street scenes for our autonomous driving AI. Identify pedestrians, vehicles, road signs, and traffic lights.";
   const taskPayment = payment || 15.00;
+  
+  // Load user badge on component mount
+  useEffect(() => {
+    const fetchUserBadge = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('badge_level')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        setUserBadge(data?.badge_level || 'beginner');
+      } catch (error) {
+        console.error("Error fetching user badge:", error);
+      }
+    };
+    
+    fetchUserBadge();
+  }, [user]);
 
   // Start tracking time when the component loads
   useEffect(() => {
@@ -101,55 +126,152 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
     setIsSubmitting(true);
     setEndTime(new Date());
     
-    // This would be an API call in a real application
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      setShowVerification(true);
+    try {
+      // For demo purposes, using sample task ID
+      const demoTaskId = taskId || 'demo-task-123';
       
-      // Simulate AI verification process
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.floor(Math.random() * 15) + 5;
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
+      // Save submission to Supabase
+      const timeTakenMinutes = startTime && endTime ? 
+        Math.floor((endTime.getTime() - startTime.getTime()) / 60000) : 0;
+      
+      // If this is a real task in the database, update it
+      if (taskId) {
+        const { error: updateError } = await supabase
+          .from('tasks')
+          .update({
+            submission_text: response,
+            time_taken: timeTakenMinutes,
+            status: 'completed'
+          })
+          .eq('id', taskId);
           
-          // Determine verification success based on various factors
-          const responseQuality = response.length > 50 ? 1 : 0.5; // Simple quality check
-          const filesQuality = files.length > 0 ? 1 : 0.7; // Check if files were uploaded
+        if (updateError) {
+          console.error("Error updating task:", updateError);
+          throw new Error("Failed to update task");
+        }
+        
+        // Call the AI verification edge function
+        try {
+          setIsSubmitted(true);
+          setShowVerification(true);
           
-          // Get time taken in minutes
-          const timeInMinutes = startTime && endTime ? 
-            (endTime.getTime() - startTime.getTime()) / 60000 : 0;
-            
-          // Penalize if too quick (less than 1 minute) or too long (more than 30 minutes)
-          let timeQuality = 1;
-          if (timeInMinutes < 1) timeQuality = 0.7;
-          else if (timeInMinutes > 30) timeQuality = 0.8;
+          // Show progress animation
+          let progress = 0;
+          const progressInterval = setInterval(() => {
+            progress += Math.floor(Math.random() * 8) + 3;
+            if (progress >= 100) {
+              clearInterval(progressInterval);
+              progress = 99; // Keep at 99% until verification is complete
+            }
+            setVerificationProgress(progress);
+          }, 500);
           
-          // Calculate final score (0-100)
-          const finalScore = Math.floor((responseQuality * 0.5 + filesQuality * 0.3 + timeQuality * 0.2) * 100);
-          setVerificationScore(finalScore);
+          const verificationResponse = await supabase.functions.invoke('verify-task', {
+            body: { taskId }
+          });
           
-          // Set state based on score
-          if (finalScore >= 70) {
+          clearInterval(progressInterval);
+          setVerificationProgress(100);
+          
+          if (verificationResponse.error) {
+            throw new Error(`Verification failed: ${verificationResponse.error.message}`);
+          }
+          
+          const verificationResult = verificationResponse.data;
+          setVerificationScore(verificationResult.score);
+          
+          if (verificationResult.verified) {
             setVerificationState("success");
             
-            // Add experience hours based on difficulty and time taken (estimation)
-            const experienceGained = Math.max(1, Math.min(Math.floor(timeInMinutes / 15), 3));
-            updateExperience(experienceGained);
+            // Check if badge has been upgraded
+            const { data: newProfile } = await supabase
+              .from('user_profiles')
+              .select('badge_level')
+              .eq('id', user.id)
+              .single();
+              
+            if (newProfile && userBadge && newProfile.badge_level !== userBadge) {
+              setBadgeUpgraded(true);
+              setUserBadge(newProfile.badge_level);
+            }
+            
+            // Add experience
+            updateExperience(Math.max(1, Math.min(Math.floor(timeTakenMinutes / 15), 3)));
           } else {
             setVerificationState("failed");
           }
           
           setTimeSpent(calculateTimeSpent());
-        } else {
-          setVerificationProgress(progress);
+          
+        } catch (verifyError) {
+          console.error("Error during AI verification:", verifyError);
+          toast({
+            title: "Verification error",
+            description: "There was an error during task verification. Please try again.",
+            variant: "destructive",
+          });
+          setVerificationState("failed");
         }
-      }, 500);
-      
-    }, 1500);
+      } else {
+        // This is a demo task without a real ID in the database
+        // Simulate AI verification process
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setIsSubmitted(true);
+          setShowVerification(true);
+          
+          // Simulate verification process
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += Math.floor(Math.random() * 15) + 5;
+            if (progress >= 100) {
+              progress = 100;
+              clearInterval(interval);
+              
+              // Determine verification success based on various factors
+              const responseQuality = response.length > 50 ? 1 : 0.5; // Simple quality check
+              const filesQuality = files.length > 0 ? 1 : 0.7; // Check if files were uploaded
+              
+              // Get time taken in minutes
+              const timeInMinutes = startTime && endTime ? 
+                (endTime.getTime() - startTime.getTime()) / 60000 : 0;
+                
+              // Penalize if too quick (less than 1 minute) or too long (more than 30 minutes)
+              let timeQuality = 1;
+              if (timeInMinutes < 1) timeQuality = 0.7;
+              else if (timeInMinutes > 30) timeQuality = 0.8;
+              
+              // Calculate final score (0-100)
+              const finalScore = Math.floor((responseQuality * 0.5 + filesQuality * 0.3 + timeQuality * 0.2) * 100);
+              setVerificationScore(finalScore / 20); // Convert to 5-point scale
+              
+              // Set state based on score
+              if (finalScore >= 70) {
+                setVerificationState("success");
+                
+                // Add experience hours based on difficulty and time taken (estimation)
+                const experienceGained = Math.max(1, Math.min(Math.floor(timeInMinutes / 15), 3));
+                updateExperience(experienceGained);
+              } else {
+                setVerificationState("failed");
+              }
+              
+              setTimeSpent(calculateTimeSpent());
+            } else {
+              setVerificationProgress(progress);
+            }
+          }, 500);
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Error submitting task:", error);
+      toast({
+        title: "Submission failed",
+        description: "There was an error submitting your task. Please try again.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -187,6 +309,16 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
             <p className="text-lg font-medium text-amber-900">Payment of ${taskPayment.toFixed(2)} is pending verification</p>
             <p className="text-sm text-amber-700">You will be notified once the verification is complete.</p>
           </div>
+          
+          {badgeUpgraded && userBadge && (
+            <div className="bg-green-50 border border-green-100 rounded-lg p-4 mt-4">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <BadgeIcon level={userBadge} size="lg" showLabel={true} />
+              </div>
+              <p className="text-lg font-medium text-green-900">Congratulations! You've leveled up!</p>
+              <p className="text-sm text-green-700">Keep completing tasks to reach even higher levels.</p>
+            </div>
+          )}
           
           {verificationState === "success" && (
             <div className="bg-green-50 border border-green-100 rounded-lg p-4 mt-4">
