@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +15,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("Auth state changed:", event, session?.user?.id);
@@ -30,7 +28,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
@@ -68,15 +65,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log(`Starting signup process for: ${email} with role: ${role}`);
       
-      // First, attempt user creation
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name,
-            experience: 0, // New users start with 0 hours
-            role // Store selected role in user metadata
+            experience: 0,
+            role
           },
           emailRedirectTo: window.location.origin
         }
@@ -89,12 +85,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log("Signup response:", data);
       
-      // In case auto-confirmation is enabled
       if (data.user) {
         const customUser = formatUserWithMetadata(data.user);
         setUser(customUser);
         
-        // Create user profile with role
         await createUserProfile(data.user.id, email, role);
         
         console.log(`User created successfully: ${customUser.id} with role: ${role}`);
@@ -111,11 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error('Signup Catch Block Error:', error);
       
-      // Check for specific error patterns
       if (error.message?.includes("User already registered")) {
         throw new Error("This email is already registered. Please try logging in instead.");
       } else if (error.message?.includes("permission denied") || error.message?.includes("Database error")) {
-        // This might be a permission issue with user_profiles - try to handle gracefully
         console.error("Database permission error detected");
         throw new Error("Unable to complete signup. The system is currently experiencing issues. Please try again later.");
       } else {
@@ -146,7 +138,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) {
           console.error("Error updating experience:", error);
         } else if (data.user) {
-          // Update the user with the new experience
           const updatedUser = { ...user } as CustomUser;
           updatedUser.experience = newExperience;
           updatedUser.user_metadata.experience = newExperience;

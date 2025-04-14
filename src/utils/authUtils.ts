@@ -16,18 +16,17 @@ export const createUserProfile = async (userId: string, email: string, role: str
     .single();
     
   if (profileError) {
-    console.error('Profile check error:', profileError);
+    console.log('Profile check error:', profileError);
     // If profile doesn't exist, try to create it manually
     if (profileError.code === 'PGRST116') {
       console.log("Profile not found, creating manually...");
       
-      // Use the proper approach for calling RPC functions
-      const { error: insertError } = await supabase
-        .rpc('create_user_profile', {
-          user_uuid: userId,
-          user_email: email,
-          user_role: role
-        });
+      // Simplified approach for calling the RPC function
+      const { error: insertError } = await supabase.rpc('create_user_profile', {
+        user_uuid: userId,
+        user_email: email,
+        user_role: role
+      });
       
       if (insertError) {
         console.error('Manual profile creation failed:', insertError);
