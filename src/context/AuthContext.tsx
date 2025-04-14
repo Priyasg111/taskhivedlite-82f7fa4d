@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: string = 'worker') => {
+  const signup = async (name: string, email: string, password: string, role: string = 'worker'): Promise<CustomUser | null> => {
     setIsLoading(true);
     
     try {
@@ -78,41 +78,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) {
-        console.error('Signup Error Details:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log("Signup response:", data);
-      
-      if (data.user) {
-        const customUser = formatUserWithMetadata(data.user);
-        setUser(customUser);
-        
-        await createUserProfile(data.user.id, email, role);
-        
-        console.log(`User created successfully: ${customUser.id} with role: ${role}`);
-        toast({
-          title: "Success!",
-          description: "Your account has been created successfully.",
-        });
-        
-        return customUser;
-      } else {
-        console.log("No user data returned from signup");
+      if (!data.user) {
         throw new Error("Failed to create user account");
       }
-    } catch (error: any) {
-      console.error('Signup Catch Block Error:', error);
       
+      const customUser = formatUserWithMetadata(data.user);
+      setUser(customUser);
+      
+      await createUserProfile(data.user.id, email, role);
+      
+      toast({
+        title: "Success!",
+        description: "Your account has been created successfully.",
+      });
+      
+      return customUser;
+    } catch (error: any) {
       if (error.message?.includes("User already registered")) {
         throw new Error("This email is already registered. Please try logging in instead.");
-      } else if (error.message?.includes("permission denied") || error.message?.includes("Database error")) {
-        console.error("Database permission error detected");
-        throw new Error("Unable to complete signup. The system is currently experiencing issues. Please try again later.");
-      } else {
-        throw new Error(error.message || "Failed to create account");
       }
+      throw new Error(error.message || "Failed to create account");
     } finally {
       setIsLoading(false);
     }

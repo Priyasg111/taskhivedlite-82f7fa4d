@@ -8,6 +8,7 @@ export interface CustomUser extends SupabaseUser {
   user_metadata: {
     name?: string;
     experience?: number;
+    role?: string;
   };
 }
 
