@@ -136,14 +136,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Profile not found, creating manually...");
             
             // Use RPC function to create profile with correct permissions
-            // Fix: Explicitly define parameter types for the RPC function
-            const { error: insertError, data: insertData } = await supabase.rpc('create_user_profile', {
-              user_uuid: data.user.id,
-              user_role: 'worker'
-            } as {
+            // Define the RPC parameter types properly
+            type CreateUserProfileParams = {
               user_uuid: string;
               user_role: string;
-            });
+            };
+            
+            const { error: insertError, data: insertData } = await supabase.rpc<any>(
+              'create_user_profile',
+              {
+                user_uuid: data.user.id,
+                user_role: 'worker'
+              } as CreateUserProfileParams
+            );
             
             if (insertError) {
               console.error('Manual profile creation failed:', insertError);
