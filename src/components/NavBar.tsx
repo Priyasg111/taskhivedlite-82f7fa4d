@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, LogOut, Menu } from "lucide-react";
@@ -24,7 +23,7 @@ const NavBar = () => {
               className="h-10 w-10"
             />
             <span className="hidden sm:inline-block text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-400">
-              TaskHived
+              TaskHived <span className="text-sm text-neutral-500 ml-1">Next</span>
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
@@ -98,7 +97,6 @@ const NavBar = () => {
             </>
           )}
           
-          {/* Mobile menu button */}
           <Button 
             variant="ghost" 
             size="icon" 
@@ -111,7 +109,6 @@ const NavBar = () => {
         </div>
       </div>
       
-      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden py-3 px-4 border-t border-border/50 bg-background/98 backdrop-blur-lg">
           <nav className="flex flex-col space-y-3">
