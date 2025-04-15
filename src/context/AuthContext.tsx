@@ -1,11 +1,10 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 import { AuthContextType, CustomUser } from '@/types/auth';
-import { createUserProfile, formatUserWithMetadata } from '@/utils/authUtils';
+import { formatUserWithMetadata } from '@/utils/authUtils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -90,18 +89,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log("User account created successfully");
       
-      // Format user data before profile creation
+      // Format and set user data
       const customUser = formatUserWithMetadata(data.user);
       setUser(customUser);
-      
-      // Create user profile after signup
-      try {
-        await createUserProfile(data.user.id, email, role);
-        console.log("Profile created successfully for user:", data.user.id);
-      } catch (profileError: any) {
-        console.error("Error creating profile:", profileError);
-        // We already display a toast in createUserProfile, no need to throw here
-      }
       
       toast({
         title: "Success!",
