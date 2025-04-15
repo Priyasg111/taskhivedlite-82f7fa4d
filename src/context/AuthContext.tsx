@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -78,16 +79,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Signup error:", error);
+        throw error;
+      }
       
       if (!data.user) {
         throw new Error("Failed to create user account");
       }
       
+      console.log("User account created successfully");
+      
+      // Format user data before profile creation
       const customUser = formatUserWithMetadata(data.user);
       setUser(customUser);
       
-      await createUserProfile(data.user.id, email, role);
+      // Create user profile after signup
+      try {
+        await createUserProfile(data.user.id, email, role);
+        console.log("Profile created successfully for user:", data.user.id);
+      } catch (profileError: any) {
+        console.error("Error creating profile:", profileError);
+        // We already display a toast in createUserProfile, no need to throw here
+      }
       
       toast({
         title: "Success!",
@@ -96,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return customUser;
     } catch (error: any) {
+      console.error("Signup process error:", error);
       if (error.message?.includes("User already registered")) {
         throw new Error("This email is already registered. Please try logging in instead.");
       }
