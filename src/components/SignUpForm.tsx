@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -88,13 +89,18 @@ const SignUpForm = () => {
       if (error.message?.includes("already registered") || error.message?.includes("already exists")) {
         setErrors(prev => ({ 
           ...prev, 
-          email: "This email is already registered. Please try logging in instead." 
+          email: "This email is already registered. Would you like to reset your password?" 
         }));
         
         toast({
           title: "Email already registered",
-          description: "This email address is already in use. Please log in instead.",
-          variant: "destructive"
+          description: "This email is already in use. Please use Forgot Password to recover your account.",
+          variant: "destructive",
+          action: {
+            altText: "Forgot Password",
+            label: "Forgot Password",
+            onClick: () => navigate("/forgot-password")
+          }
         });
       } else {
         setGeneralError(error.message || "An unexpected error occurred. Please try again.");
