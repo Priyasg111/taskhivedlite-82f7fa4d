@@ -1,16 +1,12 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import FormInput from "@/components/form/FormInput";
 import FormError from "@/components/form/FormError";
-import RoleSelector from "@/components/form/RoleSelector";
 import { SignupFormData, validateForm } from "@/components/form/ValidationSchema";
-import AgeVerification from "@/components/signup/AgeVerification";
-import TermsAgreement from "@/components/signup/TermsAgreement";
+import FormFields from "@/components/signup/FormFields";
 
 const SignUpForm = () => {
   const navigate = useNavigate();
@@ -107,69 +103,14 @@ const SignUpForm = () => {
       <CardContent>
         <FormError error={generalError} />
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormInput
-            id="name"
-            name="name"
-            label="Full Name"
-            placeholder="John Doe"
-            value={formData.name}
-            onChange={handleChange}
-            disabled={isLoading}
-            error={errors.name}
-          />
-          
-          <FormInput
-            id="email"
-            name="email"
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isLoading}
-            error={errors.email}
-          />
-          
-          <AgeVerification
-            dateOfBirth={formData.dateOfBirth}
-            onChange={handleChange}
-            error={errors.dateOfBirth}
-            disabled={isLoading}
-          />
-          
-          <FormInput
-            id="password"
-            name="password"
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={isLoading}
-            error={errors.password}
-          />
-          
-          <FormInput
-            id="confirmPassword"
-            name="confirmPassword"
-            label="Confirm Password"
-            type="password"
-            placeholder="••••••••"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            disabled={isLoading}
-            error={errors.confirmPassword}
-          />
-          
-          <RoleSelector 
-            selectedRole={formData.role}
-            onChange={handleRoleChange}
-            disabled={isLoading}
-          />
-
-          <TermsAgreement
-            checked={agreeToTerms}
-            onCheckedChange={setAgreeToTerms}
+          <FormFields
+            formData={formData}
+            errors={errors}
+            handleChange={handleChange}
+            handleRoleChange={handleRoleChange}
+            setAgreeToTerms={setAgreeToTerms}
+            agreeToTerms={agreeToTerms}
+            isLoading={isLoading}
           />
           
           <Button type="submit" className="w-full" disabled={isLoading}>
