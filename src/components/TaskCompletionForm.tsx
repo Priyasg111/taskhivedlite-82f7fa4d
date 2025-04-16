@@ -12,6 +12,7 @@ import { getTaskById, submitCompletedTask } from "@/utils/taskUtils";
 import BadgeIcon from "./user/BadgeIcon";
 import { Task, TaskSubmission } from "@/types/task";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TaskCompletionFormProps {
   id?: string;
@@ -64,6 +65,7 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
         worker_id: user?.id || null,
         status: 'in_progress',
         payment_status: null,
+        time_taken: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       });

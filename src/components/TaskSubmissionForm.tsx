@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { submitTask, TaskSubmission } from '@/utils/taskUtils';
+import { submitTask, TaskFormSubmission } from '@/utils/taskUtils';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,11 +47,15 @@ const TaskSubmissionForm = () => {
   const onSubmit = async (values: z.infer<typeof taskSchema>) => {
     if (!user) return;
 
-    const taskData: TaskSubmission = {
+    const taskData: TaskFormSubmission = {
       title: values.title,
       description: values.description,
       payment: parseFloat(values.payment),
       attachment: attachment,
+      category: "general", // Default values
+      difficulty: "medium", // Default values
+      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default 7 days
+      estimatedTime: "1 hour" // Default time
     };
 
     const result = await submitTask(taskData, user.id);

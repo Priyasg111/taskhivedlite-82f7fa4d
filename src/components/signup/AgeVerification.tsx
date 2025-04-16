@@ -1,5 +1,5 @@
 
-import { FormInput } from "@/components/form/FormInput";
+import FormInput from "@/components/form/FormInput";
 import { validateAge } from "@/utils/authUtils";
 import React from "react";
 
