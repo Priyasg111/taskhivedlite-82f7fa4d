@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ const SignUpForm = () => {
       const result = await signup(formData.name, formData.email, formData.password, formData.role);
       
       if (result === null) {
+        setIsLoading(false);
         return;
       }
       
@@ -80,13 +82,26 @@ const SignUpForm = () => {
       
       navigate("/");
     } catch (error: any) {
-      setGeneralError(error.message || "An unexpected error occurred. Please try again.");
+      console.error("Signup error:", error);
       
-      toast({
-        title: "Error creating account",
-        description: error.message || "Failed to create account. Please try again.",
-        variant: "destructive"
-      });
+      // Handle specific case for existing user
+      if (error.message?.includes("already registered") || error.message?.includes("already exists")) {
+        setErrors(prev => ({ ...prev, email: "This email is already registered. Please try logging in instead." }));
+        
+        toast({
+          title: "Email already registered",
+          description: "This email address is already in use. Please log in instead.",
+          variant: "destructive"
+        });
+      } else {
+        setGeneralError(error.message || "An unexpected error occurred. Please try again.");
+        
+        toast({
+          title: "Error creating account",
+          description: error.message || "Failed to create account. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
