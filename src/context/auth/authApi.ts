@@ -18,20 +18,30 @@ export const loginUser = async (email: string, password: string) => {
 };
 
 /**
- * Signs up a new user
+ * Checks if an email is already registered
  */
-export const signupUser = async (name: string, email: string, password: string, role: string = 'worker'): Promise<CustomUser | null> => {
-  // First check if the email already exists by trying to sign in
-  const { error: signInError } = await supabase.auth.signInWithOtp({
+export const checkEmailExists = async (email: string): Promise<boolean> => {
+  // Using signInWithOtp with shouldCreateUser: false will return an error if the email doesn't exist
+  const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
       shouldCreateUser: false
     }
   });
   
-  // If we don't get a "user not found" error, then the user likely exists
-  if (!signInError || !signInError.message.includes("user not found")) {
-    throw new Error("This email is already registered. Please try logging in instead.");
+  // If there's no error or the error doesn't contain "user not found", the email exists
+  return !error || !error.message.includes("user not found");
+};
+
+/**
+ * Signs up a new user
+ */
+export const signupUser = async (name: string, email: string, password: string, role: string = 'worker'): Promise<CustomUser | null> => {
+  // First check if the email already exists
+  const emailExists = await checkEmailExists(email);
+  
+  if (emailExists) {
+    throw new Error("This email is already registered. Please log in instead or reset your password.");
   }
   
   const { error, data } = await supabase.auth.signUp({

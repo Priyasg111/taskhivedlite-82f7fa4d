@@ -98,7 +98,7 @@ export function useSignUpForm() {
         
         toast({
           title: "Email already registered",
-          description: "This email is already in use. Please use Forgot Password to recover your account.",
+          description: "This email is already in use. Please log in or use Forgot Password to recover your account.",
           variant: "destructive",
           action: (
             <button 
