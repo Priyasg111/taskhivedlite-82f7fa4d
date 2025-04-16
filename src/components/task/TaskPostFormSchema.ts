@@ -14,3 +14,10 @@ export const taskFormSchema = z.object({
 });
 
 export type TaskFormData = z.infer<typeof taskFormSchema>;
+
+export const taskSubmissionSchema = z.object({
+  comment: z.string().optional(),
+  file: z.instanceof(File).optional(),
+});
+
+export type TaskSubmissionData = z.infer<typeof taskSubmissionSchema>;

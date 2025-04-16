@@ -28,4 +28,28 @@ export interface Task {
   worker_email?: string;
   worker_wallet_address?: string | null;
   worker_wallet_status?: string | null;
+  submission_text?: string | null;
+  comment?: string | null;
+  file_path?: string | null;
+  submitted_at?: string | null;
+  completed_at?: string | null;
+  requires_human_review?: boolean;
+  ai_validation_summary?: string | null;
+  score?: number | null;
+  category?: string;
+  difficulty?: string;
+  deadline?: string;
+  estimatedTime?: string;
+}
+
+export interface TaskSubmission {
+  task_id: string;
+  comment?: string;
+  file?: File;
+}
+
+export interface TaskSubmissionResult {
+  status: 'completed' | 'under_review' | 'rejected';
+  task: Task;
+  message: string;
 }

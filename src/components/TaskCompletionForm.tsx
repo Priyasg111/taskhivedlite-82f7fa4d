@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Upload, AlertCircle, Clock } from "lucide-react";
+import { CheckCircle, Upload, AlertCircle, Clock, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import AIVerification from "@/components/AIVerification";
-import { supabase } from "@/integrations/supabase/client";
+import { getTaskById, submitCompletedTask } from "@/utils/taskUtils";
 import BadgeIcon from "./user/BadgeIcon";
+import { Task, TaskSubmission } from "@/types/task";
+import { useQuery } from "@tanstack/react-query";
 
 interface TaskCompletionFormProps {
   id?: string;
@@ -20,7 +23,7 @@ interface TaskCompletionFormProps {
 const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionFormProps) => {
   const params = useParams();
   const taskId = id || params.taskId;
-  const [response, setResponse] = useState("");
+  const [comment, setComment] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -33,16 +36,39 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
   const [showVerification, setShowVerification] = useState(false);
   const [userBadge, setUserBadge] = useState<string | null>(null);
   const [badgeUpgraded, setBadgeUpgraded] = useState(false);
+  const [task, setTask] = useState<Task | null>(null);
   
   const { toast } = useToast();
   const { user, updateExperience } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // In a real app, you would fetch the task details based on the taskId
-  // For this demo, we'll use sample data when not provided via props
-  const taskTitle = title || "Data Labeling for AI Training";
-  const taskDescription = description || "Label 50 images of street scenes for our autonomous driving AI. Identify pedestrians, vehicles, road signs, and traffic lights.";
-  const taskPayment = payment || 15.00;
+  // If taskId is provided, fetch the task details
+  const { data: fetchedTask, isLoading: isLoadingTask } = useQuery({
+    queryKey: ['task', taskId],
+    queryFn: () => taskId ? getTaskById(taskId) : null,
+    enabled: !!taskId && !id, // Only fetch if taskId exists and props were not provided
+  });
+
+  // Use fetched task or props
+  useEffect(() => {
+    if (fetchedTask) {
+      setTask(fetchedTask);
+    } else if (id && title && description && payment) {
+      setTask({
+        id,
+        title,
+        description,
+        payment,
+        client_id: '',
+        worker_id: user?.id || null,
+        status: 'in_progress',
+        payment_status: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }
+  }, [fetchedTask, id, title, description, payment, user]);
   
   // Load user badge on component mount
   useEffect(() => {
@@ -81,7 +107,7 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    if (e.target.files && e.target.files.length > 0) {
       setFiles(Array.from(e.target.files));
     }
   };
@@ -114,10 +140,10 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
       return;
     }
     
-    if (!response.trim()) {
+    if (!task?.id) {
       toast({
-        title: "Missing information",
-        description: "Please provide a response to complete this task.",
+        title: "Task Error",
+        description: "Cannot identify the task to submit.",
         variant: "destructive",
       });
       return;
@@ -127,152 +153,86 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
     setEndTime(new Date());
     
     try {
-      // For demo purposes, using sample task ID
-      const demoTaskId = taskId || 'demo-task-123';
+      const submission: TaskSubmission = {
+        task_id: task.id,
+        comment,
+        file: files.length > 0 ? files[0] : undefined
+      };
       
-      // Save submission to Supabase
-      const timeTakenMinutes = startTime && endTime ? 
-        Math.floor((endTime.getTime() - startTime.getTime()) / 60000) : 0;
-      
-      // If this is a real task in the database, update it
-      if (taskId) {
-        const { error: updateError } = await supabase
-          .from('tasks')
-          .update({
-            submission_text: response,
-            time_taken: timeTakenMinutes,
-            status: 'completed'
-          })
-          .eq('id', taskId);
-          
-        if (updateError) {
-          console.error("Error updating task:", updateError);
-          throw new Error("Failed to update task");
-        }
-        
-        // Call the AI verification edge function
-        try {
-          setIsSubmitted(true);
-          setShowVerification(true);
-          
-          // Show progress animation
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += Math.floor(Math.random() * 8) + 3;
-            if (progress >= 100) {
-              clearInterval(progressInterval);
-              progress = 99; // Keep at 99% until verification is complete
-            }
-            setVerificationProgress(progress);
-          }, 500);
-          
-          const verificationResponse = await supabase.functions.invoke('verify-task', {
-            body: { taskId }
-          });
-          
+      // Show progress animation
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += Math.floor(Math.random() * 8) + 3;
+        if (progress >= 100) {
           clearInterval(progressInterval);
-          setVerificationProgress(100);
-          
-          if (verificationResponse.error) {
-            throw new Error(`Verification failed: ${verificationResponse.error.message}`);
-          }
-          
-          const verificationResult = verificationResponse.data;
-          setVerificationScore(verificationResult.score);
-          
-          if (verificationResult.verified) {
-            setVerificationState("success");
-            
-            // Check if badge has been upgraded
-            const { data: newProfile } = await supabase
-              .from('user_profiles')
-              .select('badge_level')
-              .eq('id', user.id)
-              .single();
-              
-            if (newProfile && userBadge && newProfile.badge_level !== userBadge) {
-              setBadgeUpgraded(true);
-              setUserBadge(newProfile.badge_level);
-            }
-            
-            // Add experience
-            updateExperience(Math.max(1, Math.min(Math.floor(timeTakenMinutes / 15), 3)));
-          } else {
-            setVerificationState("failed");
-          }
-          
-          setTimeSpent(calculateTimeSpent());
-          
-        } catch (verifyError) {
-          console.error("Error during AI verification:", verifyError);
-          toast({
-            title: "Verification error",
-            description: "There was an error during task verification. Please try again.",
-            variant: "destructive",
-          });
-          setVerificationState("failed");
+          progress = 99; // Keep at 99% until verification is complete
         }
+        setVerificationProgress(progress);
+      }, 500);
+      
+      const result = await submitCompletedTask(submission);
+      
+      clearInterval(progressInterval);
+      setVerificationProgress(100);
+      setIsSubmitted(true);
+      setShowVerification(true);
+      
+      if (result.status === 'completed') {
+        setVerificationState("success");
+        updateExperience(1); // Add 1 hour of experience
+      } else if (result.status === 'under_review') {
+        setVerificationState("verifying");
+        toast({
+          title: "Submission Under Review",
+          description: "Your task submission is being reviewed.",
+        });
       } else {
-        // This is a demo task without a real ID in the database
-        // Simulate AI verification process
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setIsSubmitted(true);
-          setShowVerification(true);
-          
-          // Simulate verification process
-          let progress = 0;
-          const interval = setInterval(() => {
-            progress += Math.floor(Math.random() * 15) + 5;
-            if (progress >= 100) {
-              progress = 100;
-              clearInterval(interval);
-              
-              // Determine verification success based on various factors
-              const responseQuality = response.length > 50 ? 1 : 0.5; // Simple quality check
-              const filesQuality = files.length > 0 ? 1 : 0.7; // Check if files were uploaded
-              
-              // Get time taken in minutes
-              const timeInMinutes = startTime && endTime ? 
-                (endTime.getTime() - startTime.getTime()) / 60000 : 0;
-                
-              // Penalize if too quick (less than 1 minute) or too long (more than 30 minutes)
-              let timeQuality = 1;
-              if (timeInMinutes < 1) timeQuality = 0.7;
-              else if (timeInMinutes > 30) timeQuality = 0.8;
-              
-              // Calculate final score (0-100)
-              const finalScore = Math.floor((responseQuality * 0.5 + filesQuality * 0.3 + timeQuality * 0.2) * 100);
-              setVerificationScore(finalScore / 20); // Convert to 5-point scale
-              
-              // Set state based on score
-              if (finalScore >= 70) {
-                setVerificationState("success");
-                
-                // Add experience hours based on difficulty and time taken (estimation)
-                const experienceGained = Math.max(1, Math.min(Math.floor(timeInMinutes / 15), 3));
-                updateExperience(experienceGained);
-              } else {
-                setVerificationState("failed");
-              }
-              
-              setTimeSpent(calculateTimeSpent());
-            } else {
-              setVerificationProgress(progress);
-            }
-          }, 500);
-        }, 1500);
+        setVerificationState("failed");
+        toast({
+          title: "Submission Failed",
+          description: result.message || "Your submission did not meet the required criteria.",
+          variant: "destructive",
+        });
       }
-    } catch (error) {
+      
+      setTimeSpent(calculateTimeSpent());
+      
+    } catch (error: any) {
       console.error("Error submitting task:", error);
       toast({
-        title: "Submission failed",
-        description: "There was an error submitting your task. Please try again.",
+        title: "Submission error",
+        description: error.message || "There was an error submitting your task.",
         variant: "destructive",
       });
       setIsSubmitting(false);
     }
   };
+
+  if (isLoadingTask) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading task...</span>
+      </div>
+    );
+  }
+
+  if (!task && taskId) {
+    return (
+      <div className="w-full max-w-3xl mx-auto">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center text-center p-6">
+              <AlertCircle className="h-16 w-16 text-destructive mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Task Not Found</h2>
+              <p className="text-muted-foreground mb-6">The requested task could not be found or you don't have permission to view it.</p>
+              <Button onClick={() => navigate("/complete-tasks")}>Browse Available Tasks</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isSubmitted) {
     return (
@@ -306,7 +266,7 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
           )}
           
           <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 mb-4">
-            <p className="text-lg font-medium text-amber-900">Payment of ${taskPayment.toFixed(2)} is pending verification</p>
+            <p className="text-lg font-medium text-amber-900">Payment of ${task?.payment?.toFixed(2)} is pending verification</p>
             <p className="text-sm text-amber-700">You will be notified once the verification is complete.</p>
           </div>
           
@@ -340,53 +300,53 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
     <div className="w-full max-w-3xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>{taskTitle}</CardTitle>
+          <CardTitle>{task?.title}</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Task ID: {taskId} • Payment: ${taskPayment.toFixed(2)}
+            Task ID: {task?.id} • Payment: ${task?.payment?.toFixed(2)}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Task Description</h3>
             <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm">{taskDescription}</p>
+              <p className="text-sm">{task?.description}</p>
             </div>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="response" className="text-sm font-medium">
-                Your Response
+              <label htmlFor="comment" className="text-sm font-medium">
+                Your Comment
               </label>
               <Textarea
-                id="response"
-                placeholder="Provide your response or completion details here..."
+                id="comment"
+                placeholder="Provide your comments or completion details here..."
                 className="min-h-[150px]"
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="files" className="text-sm font-medium">
-                Attachments (optional)
+              <label htmlFor="file" className="text-sm font-medium">
+                Attachment (optional)
               </label>
               <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center">
                 <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
                 <p className="text-sm text-muted-foreground mb-2">
-                  Drag and drop or click to upload files
+                  Drag and drop or click to upload a file
                 </p>
                 <input
-                  id="files"
+                  ref={fileInputRef}
+                  id="file"
                   type="file"
-                  multiple
                   className="hidden"
                   onChange={handleFileChange}
                 />
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => document.getElementById("files")?.click()}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  Choose Files
+                  Choose File
                 </Button>
                 {files.length > 0 && (
                   <div className="mt-4 space-y-2 text-left">
@@ -416,7 +376,14 @@ const TaskCompletionForm = ({ id, title, description, payment }: TaskCompletionF
             </div>
             <div className="pt-4">
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit Task"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Task"
+                )}
               </Button>
             </div>
           </form>
