@@ -60,7 +60,7 @@ export const signupUser = async (name: string, email: string, password: string, 
       data: {
         name,
         experience: 0,
-        role,
+        role, // Store as string instead of assuming a user_role type
         verified: false
       },
       emailRedirectTo: window.location.origin
