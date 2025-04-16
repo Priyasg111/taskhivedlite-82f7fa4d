@@ -20,24 +20,16 @@ const ResetPasswordForm = () => {
   const [isReset, setIsReset] = useState(false);
   const [isValidToken, setIsValidToken] = useState(true);
 
-  // Check if we have access token in the URL (this means user clicked on the reset link in email)
+  // Check if we have token in the URL (this means user clicked on the reset link in email)
   useEffect(() => {
-    const checkToken = async () => {
-      try {
-        // If no hash in URL or no access_token, the token is invalid
-        if (!window.location.hash || !window.location.hash.includes('access_token')) {
-          setIsValidToken(false);
-          setError("Invalid or expired password reset link. Please request a new one.");
-        }
-      } catch (err) {
-        console.error("Error checking token:", err);
-        setIsValidToken(false);
-        setError("Invalid or expired password reset link. Please request a new one.");
-      }
-    };
-
-    checkToken();
-  }, []);
+    const token = searchParams.get('token');
+    
+    // If no token in URL, the token is invalid
+    if (!token) {
+      setIsValidToken(false);
+      setError("Invalid or expired password reset link. Please request a new one.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +53,7 @@ const ResetPasswordForm = () => {
     setIsSubmitting(true);
 
     try {
+      // Use the updateUser method with the password
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) throw error;
