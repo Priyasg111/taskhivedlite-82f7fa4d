@@ -1,4 +1,5 @@
 
+
 [functions.send-welcome-email]
 verify_jwt = false
 
@@ -7,3 +8,7 @@ verify_jwt = false
 
 [functions.check-verification]
 verify_jwt = false
+
+[functions.send-reset-email]
+verify_jwt = false
+

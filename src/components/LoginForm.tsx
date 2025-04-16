@@ -68,7 +68,12 @@ const LoginForm = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Button type="button" variant="link" className="p-0 text-sm">
+              <Button 
+                type="button" 
+                variant="link" 
+                className="p-0 text-sm"
+                onClick={() => navigate("/forgot-password")}
+              >
                 Forgot password?
               </Button>
             </div>
