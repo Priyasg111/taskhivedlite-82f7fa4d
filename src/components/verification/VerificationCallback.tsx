@@ -46,15 +46,26 @@ const VerificationCallback = () => {
         if (data.success) {
           if (data.status === "approved") {
             setStatus("success");
+            
+            // Send welcome email for verified workers
+            await supabase.functions.invoke("send-welcome-email", {
+              body: {
+                name: user.name || user.user_metadata?.name || "User",
+                email: user.email,
+                role: user.user_metadata?.role || "worker",
+                welcomeType: "verified"
+              }
+            });
+            
             toast({
               title: "Verification successful",
-              description: "Your identity has been verified successfully"
+              description: "Your identity has been verified successfully. Welcome to TaskHived!"
             });
           } else if (data.status === "declined" || data.status === "abandoned") {
             setStatus("failed");
             toast({
               title: "Verification failed",
-              description: "Your verification was not successful. Please try again.",
+              description: "Your verification was not successful. Please contact support or try again with a valid government-issued ID.",
               variant: "destructive"
             });
           } else {
@@ -101,7 +112,7 @@ const VerificationCallback = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold mb-2">Verification Successful!</h2>
-            <p className="mb-4 text-muted-foreground">Your identity has been verified successfully.</p>
+            <p className="mb-4 text-muted-foreground">Your identity has been verified successfully. You can now access all features of TaskHived.</p>
           </div>
         );
       case "pending":
@@ -115,7 +126,7 @@ const VerificationCallback = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold mb-2">Verification In Progress</h2>
-            <p className="mb-4 text-muted-foreground">Your verification is being reviewed. We'll notify you once it's complete.</p>
+            <p className="mb-4 text-muted-foreground">Your verification is being reviewed. We'll notify you once it's complete. You'll have full access to TaskHived after approval.</p>
           </div>
         );
       case "failed":
@@ -129,7 +140,7 @@ const VerificationCallback = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold mb-2">Verification Failed</h2>
-            <p className="mb-4 text-muted-foreground">We couldn't verify your identity. Please try again.</p>
+            <p className="mb-4 text-muted-foreground">We couldn't verify your identity. Please contact support or try again with a valid government-issued ID.</p>
           </div>
         );
     }

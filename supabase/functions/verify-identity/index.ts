@@ -1,7 +1,15 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { supabase } from "https://esm.sh/@supabase/supabase-js@2";
 
 const VERIFF_API_KEY = Deno.env.get("PASSBASE_API_KEY"); // Reusing the existing secret key slot
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+const adminSupabase = supabase.createClient(
+  SUPABASE_URL!,
+  SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +40,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!userId) {
       throw new Error("User ID is required");
+    }
+    
+    // Update user profile to pending_verification status immediately
+    const { error: updateError } = await adminSupabase
+      .from('user_profiles')
+      .update({ kyc_status: "pending_verification" })
+      .eq("id", userId);
+      
+    if (updateError) {
+      console.error("Error updating user profile status:", updateError);
+      throw updateError;
+    }
+
+    // Fetch user information to use in verification
+    const { data: userData, error: userError } = await adminSupabase
+      .from('user_profiles')
+      .select('email')
+      .eq('id', userId)
+      .single();
+      
+    if (userError) {
+      console.error("Error fetching user data:", userError);
+      throw userError;
     }
 
     // Create a verification session with Veriff

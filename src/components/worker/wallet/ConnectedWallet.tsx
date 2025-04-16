@@ -1,11 +1,11 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
 
 interface ConnectedWalletProps {
   walletAddress: string;
-  walletStatus: "verified" | "unverified" | "none";
+  walletStatus: "verified" | "unverified" | "pending" | "none";
   onDisconnect: () => void;
 }
 
@@ -20,13 +20,24 @@ const ConnectedWallet = ({ walletAddress, walletStatus, onDisconnect }: Connecte
           </code>
         </div>
         <Badge 
-          variant={walletStatus === "verified" ? "outline" : "destructive"} 
+          variant={
+            walletStatus === "verified" 
+              ? "outline" 
+              : walletStatus === "pending" 
+                ? "secondary" 
+                : "destructive"
+          } 
           className="text-xs"
         >
           {walletStatus === "verified" ? (
             <>
               <CheckCircle className="h-3 w-3 mr-1" />
               Verified
+            </>
+          ) : walletStatus === "pending" ? (
+            <>
+              <Clock className="h-3 w-3 mr-1" />
+              Pending
             </>
           ) : (
             <>

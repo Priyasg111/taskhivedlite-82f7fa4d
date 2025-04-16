@@ -9,6 +9,7 @@ export interface CustomUser extends SupabaseUser {
     name?: string;
     experience?: number;
     role?: string;
+    verified?: boolean;
   };
 }
 
@@ -16,6 +17,7 @@ export interface AuthContextType {
   user: CustomUser | null;
   session: Session | null;
   isLoading: boolean;
+  isVerified: boolean | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, role?: string) => Promise<CustomUser | null>;
   logout: () => void;

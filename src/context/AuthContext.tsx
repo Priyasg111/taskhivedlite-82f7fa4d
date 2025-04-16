@@ -13,6 +13,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<CustomUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,8 +24,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           const customUser = formatUserWithMetadata(session.user);
           setUser(customUser);
+          
+          // Check verification status whenever auth changes
+          checkVerificationStatus(customUser.id);
         } else {
           setUser(null);
+          setIsVerified(null);
         }
       }
     );
@@ -34,25 +39,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         const customUser = formatUserWithMetadata(session.user);
         setUser(customUser);
+        
+        // Check verification status on initial load
+        checkVerificationStatus(customUser.id);
       } else {
         setUser(null);
+        setIsVerified(null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+  
+  const checkVerificationStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('kyc_status')
+        .eq('id', userId)
+        .single();
+        
+      if (error) throw error;
+      
+      const isUserVerified = data.kyc_status === 'verified';
+      setIsVerified(isUserVerified);
+      
+      if (!isUserVerified) {
+        // If on a protected route and not verified, redirect to verification page
+        const protectedRoutes = ['/payments-dashboard', '/complete-tasks'];
+        const isProtectedRoute = protectedRoutes.some(route => window.location.pathname.startsWith(route));
+        
+        if (isProtectedRoute) {
+          toast({
+            title: "Verification Required",
+            description: "Please complete identity verification to access this feature",
+            variant: "destructive"
+          });
+          navigate('/');
+        }
+      }
+    } catch (error) {
+      console.error("Error checking verification status:", error);
+      setIsVerified(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) throw error;
+      
+      // After login, check verification status
+      if (data.user) {
+        await checkVerificationStatus(data.user.id);
+        
+        // If the user is not verified, show a message
+        if (!isVerified) {
+          toast({
+            title: "Verification Required",
+            description: "Please complete identity verification to access all features",
+            variant: "warning"
+          });
+        }
+      }
     } catch (error: any) {
       throw new Error(error.message || "Failed to log in");
     } finally {
@@ -71,7 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
             experience: 0,
-            role
+            role,
+            verified: false
           },
           emailRedirectTo: window.location.origin
         }
@@ -91,7 +150,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           body: JSON.stringify({
             name,
             email,
-            role
+            role,
+            welcomeType: "initial"
           })
         });
       } catch (emailError) {
@@ -101,10 +161,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const customUser = formatUserWithMetadata(data.user);
       setUser(customUser);
       
+      // New users are not verified by default
+      setIsVerified(false);
+      
       toast({
         title: "Success!",
-        description: "Your account has been created successfully.",
+        description: "Your account has been created successfully. Please complete identity verification.",
       });
+      
+      // Redirect to verification page after signup
+      navigate('/');
       
       return customUser;
     } catch (error: any) {
@@ -148,7 +214,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, login, signup, logout, updateExperience }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      isLoading, 
+      isVerified, 
+      login, 
+      signup, 
+      logout, 
+      updateExperience 
+    }}>
       {children}
     </AuthContext.Provider>
   );

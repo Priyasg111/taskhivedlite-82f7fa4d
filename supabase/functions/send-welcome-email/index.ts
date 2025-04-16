@@ -14,7 +14,53 @@ interface WelcomeEmailRequest {
   name: string;
   email: string;
   role: 'worker' | 'client';
+  welcomeType?: 'initial' | 'verified';
 }
+
+const getVerifiedWorkerEmailTemplate = (name: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to TaskHived - You're Verified!</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .logo { text-align: center; margin-bottom: 30px; }
+    .logo img { max-width: 200px; }
+    .button { display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <img src="https://taskhived.com/logo.png" alt="TaskHived Logo">
+  </div>
+  
+  <h1>Welcome to TaskHived — You're Verified!</h1>
+  
+  <p>Hi ${name},</p>
+  
+  <p>Great news! Your identity has been verified successfully, and your TaskHived account is now fully activated.</p>
+  
+  <p>You now have complete access to:</p>
+  <ul>
+    <li>Browse and complete verified tasks</li>
+    <li>Receive payments directly to your connected wallet</li>
+    <li>Build your reputation and earn badges</li>
+    <li>Access premium high-paying tasks</li>
+  </ul>
+  
+  <a href="https://taskhived.com/dashboard" class="button">Access My Dashboard</a>
+  
+  <p>If you have any questions or need assistance, our support team is here to help.</p>
+  
+  <div class="footer">
+    <p>Welcome aboard,<br>The TaskHived Team</p>
+  </div>
+</body>
+</html>
+`;
 
 const getWorkerEmailTemplate = (name: string) => `
 <!DOCTYPE html>
@@ -40,16 +86,11 @@ const getWorkerEmailTemplate = (name: string) => `
   
   <p>Welcome to TaskHived — we're thrilled to have you on board!</p>
   
-  <p>Your account is now active, and you're ready to start earning through AI-verified microtasks.</p>
+  <p>Before you can start earning, please complete the identity verification process. This helps us maintain a secure platform for everyone.</p>
   
-  <p>What's next:</p>
-  <ul>
-    <li>Log in to your account</li>
-    <li>Explore available tasks</li>
-    <li>Complete them at your own pace and get rewarded fast</li>
-  </ul>
+  <a href="https://taskhived.com/verification" class="button">Complete Verification</a>
   
-  <a href="https://taskhived.com/login" class="button">Log In to Start Earning</a>
+  <p>Once verified, you'll gain access to all features and can start earning through AI-verified microtasks.</p>
   
   <div class="footer">
     <p>See you inside,<br>The TaskHived Team</p>
@@ -102,14 +143,23 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, role }: WelcomeEmailRequest = await req.json();
+    const { name, email, role, welcomeType = "initial" }: WelcomeEmailRequest = await req.json();
+
+    if (!name || !email || !role) {
+      throw new Error("Name, email, and role are required");
+    }
 
     let emailSubject = '';
     let emailHtml = '';
 
     if (role === 'worker') {
-      emailSubject = "Welcome to TaskHived — Let's Get Started!";
-      emailHtml = getWorkerEmailTemplate(name);
+      if (welcomeType === "verified") {
+        emailSubject = "Welcome to TaskHived — You're Verified!";
+        emailHtml = getVerifiedWorkerEmailTemplate(name);
+      } else {
+        emailSubject = "Welcome to TaskHived — Let's Get Started!";
+        emailHtml = getWorkerEmailTemplate(name);
+      }
     } else {
       emailSubject = "Welcome to TaskHived — Your Journey Starts Here";
       emailHtml = getClientEmailTemplate(name);

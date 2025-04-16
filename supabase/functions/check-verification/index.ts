@@ -52,18 +52,41 @@ const handler = async (req: Request): Promise<Response> => {
     const verificationData = await response.json();
     console.log("Verification status:", verificationData);
 
-    // If verification is approved, update the user's KYC status
+    let userStatus: string;
+    
+    // Map verification status to user status in database
     if (verificationData.verification.status === "approved") {
-      const { error } = await adminSupabase
-        .from('user_profiles')
-        .update({
-          kyc_status: "verified"
-        })
-        .eq("id", userId);
+      userStatus = "verified";
+    } else if (verificationData.verification.status === "declined" || 
+               verificationData.verification.status === "abandoned") {
+      userStatus = "rejected";
+    } else {
+      userStatus = "pending_verification";
+    }
+    
+    // Update the user's KYC status in the user_profiles table
+    const { error: profileError } = await adminSupabase
+      .from('user_profiles')
+      .update({
+        kyc_status: userStatus
+      })
+      .eq("id", userId);
 
-      if (error) {
-        console.error("Error updating user profile:", error);
-        throw error;
+    if (profileError) {
+      console.error("Error updating user profile:", profileError);
+      throw profileError;
+    }
+    
+    // If verification is approved, update the auth user metadata
+    if (userStatus === "verified") {
+      const { error: authUpdateError } = await adminSupabase.auth.admin.updateUserById(
+        userId,
+        { user_metadata: { verified: true } }
+      );
+      
+      if (authUpdateError) {
+        console.error("Error updating auth user:", authUpdateError);
+        throw authUpdateError;
       }
     }
 
