@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import FormInput from "@/components/form/FormInput";
 import FormError from "@/components/form/FormError";
 import RoleSelector from "@/components/form/RoleSelector";
 import { SignupFormData, validateForm } from "@/components/form/ValidationSchema";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const SignUpForm = () => {
   const navigate = useNavigate();
@@ -15,12 +17,14 @@ const SignUpForm = () => {
   const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
-  const [formData, setFormData] = useState<SignupFormData & { role: string }>({
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [formData, setFormData] = useState<SignupFormData & { role: string; dateOfBirth: string }>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "worker" // Default role
+    role: "worker",
+    dateOfBirth: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -28,12 +32,10 @@ const SignUpForm = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
     
-    // Clear general error when any field changes
     if (generalError) {
       setGeneralError("");
     }
@@ -43,11 +45,36 @@ const SignUpForm = () => {
     setFormData((prev) => ({ ...prev, role }));
   };
 
+  const validateAge = (dateOfBirth: string): boolean => {
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age >= 18;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError("");
-    console.clear(); // Clear console for clean debugging
+    console.clear();
     console.log("Form submission started...");
+    
+    // Validate age
+    if (!validateAge(formData.dateOfBirth)) {
+      setErrors(prev => ({ ...prev, dateOfBirth: "You must be at least 18 years old to register" }));
+      return;
+    }
+
+    // Check terms agreement
+    if (!agreeToTerms) {
+      setGeneralError("You must agree to the terms and conditions");
+      return;
+    }
     
     const formErrors = validateForm(formData);
     setErrors(formErrors);
@@ -61,19 +88,16 @@ const SignUpForm = () => {
     console.log(`Form is valid, attempting signup for: ${formData.email} with role: ${formData.role}`);
 
     try {
-      // Show debug toast to confirm form submission
       toast({
         title: "Processing...",
         description: "Attempting to create your account",
       });
       
-      // Force display any errors in UI by catching specifically here
       const result = await signup(formData.name, formData.email, formData.password, formData.role)
         .catch(err => {
           console.error("Signup Error (inner catch):", err);
           console.error("Error details:", JSON.stringify(err, null, 2));
           
-          // Show a toast and set error state
           toast({
             title: "Signup Error",
             description: err.message || "An error occurred during signup",
@@ -85,29 +109,24 @@ const SignUpForm = () => {
         });
       
       if (result === null) {
-        // Error was caught and displayed in the inner catch
         console.log("Signup failed in inner catch block");
         return;
       }
       
       console.log("Signup success, account created!");
       
-      // Show explicit success message before navigation
       toast({
         title: "Account created!",
         description: "Your account was created successfully.",
       });
       
-      // Navigate to homepage on successful signup
       navigate("/");
     } catch (error: any) {
       console.error("Signup Error (outer catch):", error);
       console.error("Error details:", JSON.stringify(error, null, 2));
       
-      // Make sure to always display an error message
       setGeneralError(error.message || "An unexpected error occurred. Please try again.");
       
-      // Also show a toast for better visibility
       toast({
         title: "Error creating account",
         description: error.message || "Failed to create account. Please try again.",
@@ -153,6 +172,17 @@ const SignUpForm = () => {
           />
           
           <FormInput
+            id="dateOfBirth"
+            name="dateOfBirth"
+            label="Date of Birth"
+            type="date"
+            value={formData.dateOfBirth}
+            onChange={handleChange}
+            disabled={isLoading}
+            error={errors.dateOfBirth}
+          />
+          
+          <FormInput
             id="password"
             name="password"
             label="Password"
@@ -181,6 +211,23 @@ const SignUpForm = () => {
             onChange={handleRoleChange}
             disabled={isLoading}
           />
+
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="terms" 
+              checked={agreeToTerms}
+              onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+            />
+            <label
+              htmlFor="terms"
+              className="text-sm text-muted-foreground"
+            >
+              I confirm that I am at least 18 years old and agree to the{" "}
+              <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+              {" "}and{" "}
+              <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+            </label>
+          </div>
           
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}

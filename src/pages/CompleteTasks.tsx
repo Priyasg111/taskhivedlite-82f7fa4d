@@ -50,7 +50,7 @@ const CompleteTasks = () => {
                 Browse and work on available tasks. Get paid once your submission is verified by AI.
               </p>
             </div>
-            <Button onClick={selectSampleTask} className="mb-6">Open Sample Task</Button>
+            <Button onClick={selectSampleTask} className="mb-6">Assigned Tasks</Button>
             <TaskList />
           </>
         )}
