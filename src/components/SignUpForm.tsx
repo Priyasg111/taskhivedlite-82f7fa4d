@@ -9,7 +9,8 @@ import FormInput from "@/components/form/FormInput";
 import FormError from "@/components/form/FormError";
 import RoleSelector from "@/components/form/RoleSelector";
 import { SignupFormData, validateForm } from "@/components/form/ValidationSchema";
-import { Checkbox } from "@/components/ui/checkbox";
+import AgeVerification from "@/components/signup/AgeVerification";
+import TermsAgreement from "@/components/signup/TermsAgreement";
 
 const SignUpForm = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const SignUpForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [formData, setFormData] = useState<SignupFormData & { role: string; dateOfBirth: string }>({
+  const [formData, setFormData] = useState<SignupFormData & { role: string }>({
     name: "",
     email: "",
     password: "",
@@ -45,31 +46,10 @@ const SignUpForm = () => {
     setFormData((prev) => ({ ...prev, role }));
   };
 
-  const validateAge = (dateOfBirth: string): boolean => {
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    return age >= 18;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError("");
-    console.clear();
-    console.log("Form submission started...");
     
-    // Validate age
-    if (!validateAge(formData.dateOfBirth)) {
-      setErrors(prev => ({ ...prev, dateOfBirth: "You must be at least 18 years old to register" }));
-      return;
-    }
-
     // Check terms agreement
     if (!agreeToTerms) {
       setGeneralError("You must agree to the terms and conditions");
@@ -80,12 +60,10 @@ const SignUpForm = () => {
     setErrors(formErrors);
     
     if (Object.keys(formErrors).length > 0) {
-      console.log("Form validation failed");
       return;
     }
 
     setIsLoading(true);
-    console.log(`Form is valid, attempting signup for: ${formData.email} with role: ${formData.role}`);
 
     try {
       toast({
@@ -93,27 +71,11 @@ const SignUpForm = () => {
         description: "Attempting to create your account",
       });
       
-      const result = await signup(formData.name, formData.email, formData.password, formData.role)
-        .catch(err => {
-          console.error("Signup Error (inner catch):", err);
-          console.error("Error details:", JSON.stringify(err, null, 2));
-          
-          toast({
-            title: "Signup Error",
-            description: err.message || "An error occurred during signup",
-            variant: "destructive"
-          });
-          
-          setGeneralError(err.message || "An error occurred during signup");
-          return null;
-        });
+      const result = await signup(formData.name, formData.email, formData.password, formData.role);
       
       if (result === null) {
-        console.log("Signup failed in inner catch block");
         return;
       }
-      
-      console.log("Signup success, account created!");
       
       toast({
         title: "Account created!",
@@ -122,9 +84,6 @@ const SignUpForm = () => {
       
       navigate("/");
     } catch (error: any) {
-      console.error("Signup Error (outer catch):", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
-      
       setGeneralError(error.message || "An unexpected error occurred. Please try again.");
       
       toast({
@@ -171,15 +130,11 @@ const SignUpForm = () => {
             error={errors.email}
           />
           
-          <FormInput
-            id="dateOfBirth"
-            name="dateOfBirth"
-            label="Date of Birth"
-            type="date"
-            value={formData.dateOfBirth}
+          <AgeVerification
+            dateOfBirth={formData.dateOfBirth}
             onChange={handleChange}
-            disabled={isLoading}
             error={errors.dateOfBirth}
+            disabled={isLoading}
           />
           
           <FormInput
@@ -212,22 +167,10 @@ const SignUpForm = () => {
             disabled={isLoading}
           />
 
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="terms" 
-              checked={agreeToTerms}
-              onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
-            />
-            <label
-              htmlFor="terms"
-              className="text-sm text-muted-foreground"
-            >
-              I confirm that I am at least 18 years old and agree to the{" "}
-              <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
-              {" "}and{" "}
-              <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
-            </label>
-          </div>
+          <TermsAgreement
+            checked={agreeToTerms}
+            onCheckedChange={setAgreeToTerms}
+          />
           
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
