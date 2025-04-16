@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -107,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           toast({
             title: "Verification Required",
             description: "Please complete identity verification to access all features",
-            variant: "warning"
+            variant: "default" // Changed from "warning" to "default"
           });
         }
       }
