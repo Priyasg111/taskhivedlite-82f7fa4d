@@ -30,7 +30,8 @@ const ForgotPasswordForm = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://taskhived.com/reset-password",
+        // Revert to Supabase's default reset UI
+        redirectTo: null
       });
 
       if (error) throw error;
