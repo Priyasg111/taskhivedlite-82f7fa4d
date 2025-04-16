@@ -15,6 +15,7 @@ import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import VerificationComplete from "./pages/VerificationComplete";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/verification-complete" element={<VerificationComplete />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
