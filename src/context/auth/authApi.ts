@@ -29,7 +29,7 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
     }
   });
   
-  // If there's no error or the error doesn't contain "user not found", the email exists
+  // FIX: Only return true if there's no error OR if the error is NOT about "user not found"
   return !error || !error.message.includes("user not found");
 };
 
