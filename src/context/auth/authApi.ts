@@ -53,6 +53,9 @@ export const signupUser = async (name: string, email: string, password: string, 
     throw new Error("This email is already registered. Please log in instead or reset your password.");
   }
   
+  // Validate role is one of the allowed values for the enum
+  const validRole = role === 'client' ? 'client' : 'worker'; // Default to worker for any invalid input
+  
   const { error, data } = await supabase.auth.signUp({
     email,
     password,
@@ -60,7 +63,7 @@ export const signupUser = async (name: string, email: string, password: string, 
       data: {
         name,
         experience: 0,
-        role, // Store as string instead of assuming a user_role type
+        role: validRole, // Ensure we're sending a valid role value that matches our enum
         verified: false
       },
       emailRedirectTo: window.location.origin
@@ -81,7 +84,7 @@ export const signupUser = async (name: string, email: string, password: string, 
       body: JSON.stringify({
         name,
         email,
-        role,
+        role: validRole,
         welcomeType: "initial"
       })
     });
