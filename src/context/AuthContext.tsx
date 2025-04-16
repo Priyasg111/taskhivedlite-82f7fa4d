@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -121,6 +122,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // First check if the email already exists by trying to sign in
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false
+        }
+      });
+      
+      // If we don't get a "user not found" error, then the user likely exists
+      if (!signInError || !signInError.message.includes("user not found")) {
+        throw new Error("This email is already registered. Please try logging in instead.");
+      }
+      
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
@@ -174,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return customUser;
     } catch (error: any) {
       console.error("Signup process error:", error);
-      if (error.message?.includes("User already registered")) {
+      if (error.message?.includes("already registered") || error.message?.includes("already exists")) {
         throw new Error("This email is already registered. Please try logging in instead.");
       }
       throw new Error(error.message || "Failed to create account");

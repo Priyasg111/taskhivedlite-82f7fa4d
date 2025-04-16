@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,6 +45,7 @@ const SignUpForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError("");
+    setErrors({});
     
     // Check terms agreement
     if (!agreeToTerms) {
@@ -86,7 +86,10 @@ const SignUpForm = () => {
       
       // Handle specific case for existing user
       if (error.message?.includes("already registered") || error.message?.includes("already exists")) {
-        setErrors(prev => ({ ...prev, email: "This email is already registered. Please try logging in instead." }));
+        setErrors(prev => ({ 
+          ...prev, 
+          email: "This email is already registered. Please try logging in instead." 
+        }));
         
         toast({
           title: "Email already registered",
