@@ -12,6 +12,8 @@ const NavBar = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  const isClient = user?.user_metadata?.role === 'client';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="container flex h-16 items-center justify-between">
@@ -41,13 +43,15 @@ const NavBar = () => {
               Work on Tasks
               <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
             </Link>
-            <Link
-              to="/post-task"
-              className="text-sm font-medium transition-colors hover:text-primary relative group"
-            >
-              Post a Task
-              <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
-            </Link>
+            {isClient && (
+              <Link
+                to="/post-task"
+                className="text-sm font-medium transition-colors hover:text-primary relative group"
+              >
+                Post a Task
+                <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+              </Link>
+            )}
             <Link
               to="/payments"
               className="text-sm font-medium transition-colors hover:text-primary relative group"
@@ -126,13 +130,15 @@ const NavBar = () => {
             >
               Work on Tasks
             </Link>
-            <Link
-              to="/post-task"
-              className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Post a Task
-            </Link>
+            {isClient && (
+              <Link
+                to="/post-task"
+                className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Post a Task
+              </Link>
+            )}
             <Link
               to="/payments"
               className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"

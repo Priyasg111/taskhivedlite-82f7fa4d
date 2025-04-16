@@ -4,6 +4,7 @@ import FormInput from "@/components/form/FormInput";
 import RoleSelector from "@/components/form/RoleSelector";
 import AgeVerification from "@/components/signup/AgeVerification";
 import TermsAgreement from "@/components/signup/TermsAgreement";
+import ReferralPopup from "@/components/signup/ReferralPopup";
 import { SignupFormData } from "@/components/form/ValidationSchema";
 
 interface FormFieldsProps {
@@ -86,6 +87,8 @@ const FormFields: React.FC<FormFieldsProps> = ({
         onChange={handleRoleChange}
         disabled={isLoading}
       />
+
+      <ReferralPopup role={formData.role} />
 
       <TermsAgreement
         checked={agreeToTerms}
