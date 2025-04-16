@@ -21,16 +21,25 @@ export const loginUser = async (email: string, password: string) => {
  * Checks if an email is already registered
  */
 export const checkEmailExists = async (email: string): Promise<boolean> => {
-  // Using signInWithOtp with shouldCreateUser: false will return an error if the email doesn't exist
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: false
+  try {
+    // Perform a direct database query for case-insensitive email check
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('email')
+      .ilike('email', email)
+      .maybeSingle();
+    
+    if (error) {
+      console.error("Error checking email existence:", error);
+      return false;
     }
-  });
-  
-  // FIX: Only return true if there's no error OR if the error is NOT about "user not found"
-  return !error || !error.message.includes("user not found");
+    
+    // If we got data back, the email exists
+    return !!data;
+  } catch (err) {
+    console.error("Exception checking email:", err);
+    return false;
+  }
 };
 
 /**
