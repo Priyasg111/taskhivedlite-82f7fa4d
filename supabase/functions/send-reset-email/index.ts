@@ -39,12 +39,10 @@ serve(async (req: Request) => {
 
     const name = userData.name || "TaskHived User";
 
-    // Generate reset URL with token
-    const resetUrl = `${new URL(req.url).origin}/reset-password?token=${token}`;
+    // Generate reset URL with production domain
+    const resetUrl = `https://taskhived.com/reset-password?token=${token}`;
     
     // Send email using Supabase's built-in email service
-    // In a production app, you'd use a service like Resend or SendGrid here
-    // This is a placeholder implementation
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: resetUrl,
     });
