@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import FormError from "@/components/form/FormError";
 import { SignupFormData, validateForm } from "@/components/form/ValidationSchema";
 import FormFields from "@/components/signup/FormFields";
@@ -96,11 +96,15 @@ const SignUpForm = () => {
           title: "Email already registered",
           description: "This email is already in use. Please use Forgot Password to recover your account.",
           variant: "destructive",
-          action: {
-            altText: "Forgot Password",
-            label: "Forgot Password",
-            onClick: () => navigate("/forgot-password")
-          }
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate("/forgot-password")}
+            >
+              Forgot Password
+            </Button>
+          )
         });
       } else {
         setGeneralError(error.message || "An unexpected error occurred. Please try again.");

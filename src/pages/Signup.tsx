@@ -1,22 +1,19 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "@/components/NavBar";
 import SignUpForm from "@/components/SignUpForm";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 
 const Signup = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect if already logged in
   useEffect(() => {
     if (user && !isLoading) {
       navigate("/");
     }
   }, [user, isLoading, navigate]);
 
-  // Show loading state if auth state is still being determined
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
