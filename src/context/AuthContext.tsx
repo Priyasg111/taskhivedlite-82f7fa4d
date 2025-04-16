@@ -63,8 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      console.log(`Starting signup process for: ${email} with role: ${role}`);
-      
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
@@ -86,10 +84,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!data.user) {
         throw new Error("Failed to create user account");
       }
+
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: JSON.stringify({
+            name,
+            email,
+            role
+          })
+        });
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+      }
       
-      console.log("User account created successfully");
-      
-      // Format and set user data
       const customUser = formatUserWithMetadata(data.user);
       setUser(customUser);
       

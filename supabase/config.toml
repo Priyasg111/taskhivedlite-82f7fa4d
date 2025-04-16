@@ -1,14 +1,3 @@
 
-project_id = "ezyngxcqvmuljfkmgjgs"
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.submit-completed-task]
-verify_jwt = true
-
-[functions.verify-task]
-verify_jwt = false
-
-[functions.webhook-handler]
+[functions.send-welcome-email]
 verify_jwt = false

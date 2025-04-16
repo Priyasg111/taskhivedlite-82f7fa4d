@@ -123,6 +123,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_verification_metadata: {
+        Row: {
+          created_at: string | null
+          email_verified: boolean | null
+          follow_up_email_sent_at: string | null
+          follow_up_pending: boolean | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+          user_id: string
+          verification_email_sent_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_verified?: boolean | null
+          follow_up_email_sent_at?: string | null
+          follow_up_pending?: boolean | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id: string
+          verification_email_sent_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_verified?: boolean | null
+          follow_up_email_sent_at?: string | null
+          follow_up_pending?: boolean | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id?: string
+          verification_email_sent_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -138,7 +171,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "worker" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -253,6 +286,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["worker", "client"],
+    },
   },
 } as const
