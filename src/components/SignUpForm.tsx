@@ -11,7 +11,8 @@ const SignUpForm = () => {
   const { 
     formState, 
     setAgreeToTerms, 
-    handleChange, 
+    handleChange,
+    handleDateChange, 
     handleRoleChange, 
     handleSubmit 
   } = useSignUpForm();
@@ -31,6 +32,7 @@ const SignUpForm = () => {
             formData={formState.formData}
             errors={formState.errors}
             handleChange={handleChange}
+            handleDateChange={handleDateChange}
             handleRoleChange={handleRoleChange}
             setAgreeToTerms={setAgreeToTerms}
             agreeToTerms={formState.agreeToTerms}

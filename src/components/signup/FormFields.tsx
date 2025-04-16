@@ -11,6 +11,7 @@ interface FormFieldsProps {
   formData: SignupFormData & { role: string };
   errors: Record<string, string>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDateChange?: (date: string) => void;
   handleRoleChange: (role: string) => void;
   setAgreeToTerms: (checked: boolean) => void;
   agreeToTerms: boolean;
@@ -21,6 +22,7 @@ const FormFields: React.FC<FormFieldsProps> = ({
   formData,
   errors,
   handleChange,
+  handleDateChange,
   handleRoleChange,
   setAgreeToTerms,
   agreeToTerms,
@@ -53,7 +55,7 @@ const FormFields: React.FC<FormFieldsProps> = ({
       
       <AgeVerification
         dateOfBirth={formData.dateOfBirth}
-        onChange={handleChange}
+        onChange={handleDateChange || (() => {})}
         error={errors.dateOfBirth}
         disabled={isLoading}
       />

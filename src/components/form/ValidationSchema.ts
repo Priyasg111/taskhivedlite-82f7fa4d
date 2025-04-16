@@ -7,15 +7,20 @@ export const signupSchema = z.object({
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   dateOfBirth: z.string().refine((date) => {
     if (!date) return false;
+    
     const birthDate = new Date(date);
     const today = new Date();
+    
+    // Calculate age
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    return age >= 18;
-  }, { message: "You must be at least 18 years old to register" })
+    
+    // Check if age is within the valid range (18-90)
+    return age >= 18 && age <= 90;
+  }, { message: "You must be between 18 and 90 years old to sign up" })
 });
 
 export type SignupFormData = {

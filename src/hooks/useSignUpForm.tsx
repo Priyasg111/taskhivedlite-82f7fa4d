@@ -42,6 +42,14 @@ export function useSignUpForm() {
       setGeneralError("");
     }
   };
+  
+  const handleDateChange = (date: string) => {
+    setFormData((prev) => ({ ...prev, dateOfBirth: date }));
+    
+    if (errors.dateOfBirth) {
+      setErrors((prev) => ({ ...prev, dateOfBirth: "" }));
+    }
+  };
 
   const handleRoleChange = (role: string) => {
     setFormData((prev) => ({ ...prev, role }));
@@ -133,6 +141,7 @@ export function useSignUpForm() {
     },
     setAgreeToTerms,
     handleChange,
+    handleDateChange,
     handleRoleChange,
     handleSubmit
   };
