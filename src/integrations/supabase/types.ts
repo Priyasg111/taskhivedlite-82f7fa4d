@@ -129,7 +129,7 @@ export type Database = {
           email_verified: boolean | null
           follow_up_email_sent_at: string | null
           follow_up_pending: boolean | null
-          role: Database["public"]["Enums"]["user_role"]
+          role: string
           updated_at: string | null
           user_id: string
           verification_email_sent_at: string | null
@@ -139,7 +139,7 @@ export type Database = {
           email_verified?: boolean | null
           follow_up_email_sent_at?: string | null
           follow_up_pending?: boolean | null
-          role: Database["public"]["Enums"]["user_role"]
+          role: string
           updated_at?: string | null
           user_id: string
           verification_email_sent_at?: string | null
@@ -149,7 +149,7 @@ export type Database = {
           email_verified?: boolean | null
           follow_up_email_sent_at?: string | null
           follow_up_pending?: boolean | null
-          role?: Database["public"]["Enums"]["user_role"]
+          role?: string
           updated_at?: string | null
           user_id?: string
           verification_email_sent_at?: string | null
