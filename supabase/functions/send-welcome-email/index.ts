@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
@@ -13,7 +12,7 @@ const corsHeaders = {
 interface WelcomeEmailRequest {
   name: string;
   email: string;
-  role: string;  // Use string instead of enum
+  role: 'worker' | 'client';  // Use union type for stricter typing
   welcomeType?: 'initial' | 'verified';
 }
 
@@ -156,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
     let emailSubject = '';
     let emailHtml = '';
 
-    // Use basic string comparison instead of enum comparison
+    // Use string comparison since the role is already validated as 'worker' or 'client'
     if (role === 'worker') {
       if (welcomeType === "verified") {
         emailSubject = "Welcome to TaskHived — You're Verified!";

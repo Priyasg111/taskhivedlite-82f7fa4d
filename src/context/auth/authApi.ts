@@ -54,7 +54,8 @@ export const signupUser = async (name: string, email: string, password: string, 
   }
   
   // Sanitize and normalize role input to avoid any potential database type issues
-  const safeRole = role === 'client' ? 'client' : 'worker';
+  // Explicitly cast to the union type expected by the database
+  const safeRole = (role === 'client' ? 'client' : 'worker') as 'worker' | 'client';
   
   console.log("Starting signup for user with email:", email, "and role:", safeRole);
   
@@ -108,9 +109,10 @@ export const signupUser = async (name: string, email: string, password: string, 
     
     // Create user verification metadata explicitly
     try {
+      // Create an object with the correct types that match the database expectations
       const verificationData = {
         user_id: data.user.id,
-        role: safeRole,
+        role: safeRole, // This is now properly typed as 'worker' | 'client'
         verification_email_sent_at: safeRole === 'worker' ? new Date().toISOString() : null,
         follow_up_pending: safeRole === 'client',
         email_verified: false
