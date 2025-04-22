@@ -13,7 +13,7 @@ const corsHeaders = {
 interface WelcomeEmailRequest {
   name: string;
   email: string;
-  role: 'worker' | 'client';
+  role: string;  // Use string instead of enum
   welcomeType?: 'initial' | 'verified';
 }
 
