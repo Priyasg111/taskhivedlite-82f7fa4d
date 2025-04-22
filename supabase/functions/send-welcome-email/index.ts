@@ -143,15 +143,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, role, welcomeType = "initial" }: WelcomeEmailRequest = await req.json();
+    const requestBody = await req.json();
+    console.log("Welcome email request received:", requestBody);
+    
+    const { name, email, role, welcomeType = "initial" } = requestBody as WelcomeEmailRequest;
 
     if (!name || !email || !role) {
+      console.error("Missing required fields:", { name, email, role });
       throw new Error("Name, email, and role are required");
     }
 
     let emailSubject = '';
     let emailHtml = '';
 
+    // Use basic string comparison instead of enum comparison
     if (role === 'worker') {
       if (welcomeType === "verified") {
         emailSubject = "Welcome to TaskHived — You're Verified!";
@@ -165,6 +170,8 @@ const handler = async (req: Request): Promise<Response> => {
       emailHtml = getClientEmailTemplate(name);
     }
 
+    console.log("Sending email with subject:", emailSubject);
+    
     const emailResponse = await resend.emails.send({
       from: "TaskHived <onboarding@taskhived.com>",
       to: [email],

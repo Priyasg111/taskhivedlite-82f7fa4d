@@ -53,8 +53,10 @@ export const signupUser = async (name: string, email: string, password: string, 
     throw new Error("This email is already registered. Please log in instead or reset your password.");
   }
   
-  // Ensure role is one of the valid options
-  const validRole = role === 'client' ? 'client' : 'worker'; // Default to worker for any invalid input
+  // Sanitize input: Only allow 'worker' or 'client' as valid roles
+  const validRole = role === 'client' ? 'client' : 'worker';
+  
+  console.log("Signing up user with role:", validRole);
   
   const { error, data } = await supabase.auth.signUp({
     email,
@@ -63,7 +65,7 @@ export const signupUser = async (name: string, email: string, password: string, 
       data: {
         name,
         experience: 0,
-        role: validRole, // Use plain string value
+        role: validRole,
         verified: false
       },
       emailRedirectTo: window.location.origin
@@ -80,11 +82,19 @@ export const signupUser = async (name: string, email: string, password: string, 
   }
 
   try {
+    // Log the request payload for debugging
+    console.log("Sending welcome email with payload:", {
+      name,
+      email,
+      role: validRole,
+      welcomeType: "initial"
+    });
+    
     await supabase.functions.invoke('send-welcome-email', {
       body: JSON.stringify({
         name,
         email,
-        role: validRole, // Ensure consistent role value
+        role: validRole,
         welcomeType: "initial"
       })
     });
