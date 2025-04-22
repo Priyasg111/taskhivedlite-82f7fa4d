@@ -99,13 +99,36 @@ export const signupUser = async (name: string, email: string, password: string, 
         
       if (profileError) {
         console.error("Error creating user profile:", profileError);
-        // Don't throw here, we still want to continue with the welcome email
       } else {
         console.log("User profile created successfully");
       }
     } catch (profileErr) {
       console.error("Exception creating user profile:", profileErr);
-      // Don't throw here, we still want to continue with the welcome email
+    }
+    
+    // Create user verification metadata explicitly
+    try {
+      const verificationData = {
+        user_id: data.user.id,
+        role: safeRole,
+        verification_email_sent_at: safeRole === 'worker' ? new Date().toISOString() : null,
+        follow_up_pending: safeRole === 'client',
+        email_verified: false
+      };
+      
+      console.log("Creating verification metadata:", verificationData);
+      
+      const { error: verificationError } = await supabase
+        .from('user_verification_metadata')
+        .insert(verificationData);
+        
+      if (verificationError) {
+        console.error("Error creating verification metadata:", verificationError);
+      } else {
+        console.log("Verification metadata created successfully");
+      }
+    } catch (verificationErr) {
+      console.error("Exception creating verification metadata:", verificationErr);
     }
 
     try {
