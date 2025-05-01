@@ -22,13 +22,18 @@ import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  // Initialize the keep-alive ping
-  useKeepAlive();
+  // Initialize the keep-alive ping with online detection
+  const { isOnline } = useKeepAlive();
   
   return (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      {!isOnline && (
+        <div className="fixed top-0 left-0 right-0 bg-amber-500 text-white py-1 px-4 text-center z-50">
+          Connection lost. Attempting to reconnect...
+        </div>
+      )}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/post-task" element={<PostTask />} />
