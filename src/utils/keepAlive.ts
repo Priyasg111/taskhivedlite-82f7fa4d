@@ -2,19 +2,23 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Sends a lightweight ping to Supabase to keep the connection alive
+ * Sends a lightweight query to the profiles table to keep the Supabase connection alive
  * This prevents cold starts and keeps the service responsive
  */
 export const pingSupabase = async (): Promise<void> => {
   try {
-    // Instead of using an RPC function, we'll invoke our edge function
-    const { data, error } = await supabase.functions.invoke('get-timestamp');
+    // Performing a lightweight query to the profiles table
+    // Just selecting a single ID with a limit of 1
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .limit(1);
     
     if (error) {
       // Log error silently - don't expose to users
       console.debug('Supabase keep-alive ping error:', error.message);
     } else {
-      console.debug('Supabase keep-alive ping successful', data?.timestamp);
+      console.debug('Supabase keep-alive ping successful', new Date().toISOString());
     }
   } catch (err) {
     // Silent error handling to avoid affecting users
