@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CustomUser } from "@/types/auth";
 import { formatUserWithMetadata } from '@/utils/authUtils';
@@ -53,7 +54,9 @@ export const signupUser = async (name: string, email: string, password: string, 
   }
   
   // Validate and normalize role to only allow 'worker' or 'client'
-  const safeRole = (role === 'client' ? 'client' : 'worker') as const;
+  // Define a properly typed role value instead of using const assertion
+  const safeRole = role === 'client' ? 'client' : 'worker';
+  // TypeScript will infer this as 'worker' | 'client' type
   
   console.log("Starting signup for user with email:", email, "and role:", safeRole);
   
@@ -109,7 +112,7 @@ export const signupUser = async (name: string, email: string, password: string, 
     try {
       const verificationData = {
         user_id: data.user.id,
-        role: safeRole,
+        role: safeRole as 'worker' | 'client', // Use a type assertion here to satisfy the type requirement
         verification_email_sent_at: safeRole === 'worker' ? new Date().toISOString() : null,
         follow_up_pending: safeRole === 'client',
         email_verified: false
@@ -138,7 +141,7 @@ export const signupUser = async (name: string, email: string, password: string, 
         body: JSON.stringify({
           name,
           email,
-          role: safeRole,
+          role: safeRole, // This is already typed correctly
           welcomeType: "initial"
         })
       });
