@@ -70,6 +70,30 @@ const ClientOnlyRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// WorkerOnlyRoute component to handle worker-specific routes
+const WorkerOnlyRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="h-screen w-full flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>;
+  }
+  
+  // Allow unauthenticated users but redirect to login
+  if (!user) {
+    const currentPath = window.location.pathname;
+    return <Navigate to={`/login?returnTo=${currentPath}`} replace />;
+  }
+  
+  // Check if user has worker role
+  if (user.user_metadata?.role !== 'worker') {
+    return <Navigate to="/unauthorized" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const AppContent = () => {
   // Initialize the keep-alive ping with online detection
   const { isOnline } = useKeepAlive();
@@ -86,8 +110,8 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/post-task" element={<ClientOnlyRoute><PostTask /></ClientOnlyRoute>} />
-        <Route path="/complete-tasks" element={<CompleteTasks />} />
-        <Route path="/complete-tasks/:taskId" element={<CompleteTasks />} />
+        <Route path="/complete-tasks" element={<WorkerOnlyRoute><CompleteTasks /></WorkerOnlyRoute>} />
+        <Route path="/complete-tasks/:taskId" element={<WorkerOnlyRoute><CompleteTasks /></WorkerOnlyRoute>} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/payments-dashboard" element={<PaymentsDashboard />} />
         <Route path="/payment-setup" element={<PaymentSetupPage />} />

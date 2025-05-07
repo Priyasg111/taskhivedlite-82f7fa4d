@@ -15,6 +15,9 @@ const NavBar = () => {
 
   // Check if user has client role
   const isClient = user?.user_metadata?.role === 'client';
+  
+  // Check if user has worker role or is not authenticated
+  const isWorkerOrUnauthenticated = !user || user.user_metadata?.role === 'worker';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
@@ -47,13 +50,15 @@ const NavBar = () => {
                 <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
               </Link>
             )}
-            <Link
-              to="/complete-tasks"
-              className="text-sm font-medium transition-colors hover:text-primary relative group"
-            >
-              Work on Tasks
-              <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
-            </Link>
+            {isWorkerOrUnauthenticated && (
+              <Link
+                to="/complete-tasks"
+                className="text-sm font-medium transition-colors hover:text-primary relative group"
+              >
+                Work on Tasks
+                <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+              </Link>
+            )}
             {isClient && (
               <Link
                 to="/post-task"
@@ -143,13 +148,15 @@ const NavBar = () => {
                 Dashboard
               </Link>
             )}
-            <Link
-              to="/complete-tasks"
-              className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Work on Tasks
-            </Link>
+            {isWorkerOrUnauthenticated && (
+              <Link
+                to="/complete-tasks"
+                className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Work on Tasks
+              </Link>
+            )}
             {isClient && (
               <Link
                 to="/post-task"
