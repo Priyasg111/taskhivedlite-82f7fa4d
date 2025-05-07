@@ -45,7 +45,7 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 /**
  * Signs up a new user
  */
-export const signupUser = async (name: string, email: string, password: string, role: string = 'worker'): Promise<CustomUser | null> => {
+export const signupUser = async (name: string, email: string, password: string, role: string = 'worker', userType: string = 'worker'): Promise<CustomUser | null> => {
   // First check if the email already exists
   const emailExists = await checkEmailExists(email);
   
@@ -58,7 +58,7 @@ export const signupUser = async (name: string, email: string, password: string, 
   const safeRole = role === 'client' ? 'client' : 'worker';
   // TypeScript will infer this as 'worker' | 'client' type
   
-  console.log("Starting signup for user with email:", email, "and role:", safeRole);
+  console.log("Starting signup for user with email:", email, "role:", safeRole, "user type:", userType);
   
   try {
     // First, create the user with basic auth info
@@ -70,6 +70,7 @@ export const signupUser = async (name: string, email: string, password: string, 
           name,
           experience: 0,
           role: safeRole,
+          user_type: userType,
           verified: false
         },
         emailRedirectTo: window.location.origin
@@ -95,6 +96,7 @@ export const signupUser = async (name: string, email: string, password: string, 
           id: data.user.id,
           email: email,
           role: safeRole,
+          user_type: userType,
           credits: 0,
           badge_level: 'beginner'
         });

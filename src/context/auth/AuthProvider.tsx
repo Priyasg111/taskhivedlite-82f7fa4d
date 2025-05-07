@@ -23,9 +23,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: string = 'worker'): Promise<CustomUser | null> => {
+  const signup = async (name: string, email: string, password: string, role: string = 'worker', userType: string = 'worker'): Promise<CustomUser | null> => {
     try {
-      const customUser = await signupUser(name, email, password, role);
+      const customUser = await signupUser(name, email, password, role, userType);
       setUser(customUser);
       
       // New users are not verified by default

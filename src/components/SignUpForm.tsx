@@ -13,7 +13,8 @@ const SignUpForm = () => {
     setAgreeToTerms, 
     handleChange,
     handleDateChange, 
-    handleRoleChange, 
+    handleRoleChange,
+    handleUserTypeChange,
     handleSubmit 
   } = useSignUpForm();
 
@@ -34,6 +35,7 @@ const SignUpForm = () => {
             handleChange={handleChange}
             handleDateChange={handleDateChange}
             handleRoleChange={handleRoleChange}
+            handleUserTypeChange={handleUserTypeChange}
             setAgreeToTerms={setAgreeToTerms}
             agreeToTerms={formState.agreeToTerms}
             isLoading={formState.isLoading}

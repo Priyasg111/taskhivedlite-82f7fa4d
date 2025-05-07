@@ -14,7 +14,7 @@ const Dashboard = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const redirectBasedOnRole = async () => {
+    const redirectBasedOnUserType = async () => {
       // If auth is still loading, wait
       if (authLoading) return;
       
@@ -30,10 +30,10 @@ const Dashboard = () => {
       }
       
       try {
-        // Get user role from profile
+        // Get user type from profile
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
-          .select('role')
+          .select('user_type')
           .eq('id', user.id)
           .single();
           
@@ -42,29 +42,36 @@ const Dashboard = () => {
         }
         
         if (profileData) {
-          const role = profileData.role as string;
+          const userType = profileData.user_type;
           
-          // Redirect based on role
-          if (role === 'worker') {
+          // Redirect based on user type
+          if (userType === 'worker') {
             navigate("/task-room");
-          } else if (role === 'client' || role === 'employer') {
+          } else if (userType === 'employer') {
             navigate("/employer-console");
           } else {
-            navigate("/unauthorized");
+            // Fallback based on role if user_type doesn't help
+            if (user.user_metadata?.role === 'worker') {
+              navigate("/task-room");
+            } else if (user.user_metadata?.role === 'client') {
+              navigate("/employer-console");
+            } else {
+              navigate("/unauthorized");
+            }
           }
         } else {
           // No profile found, redirect to unauthorized
           navigate("/unauthorized");
         }
       } catch (err) {
-        console.error("Error checking user role:", err);
-        setError("Unable to determine your user role. Please try again later.");
+        console.error("Error checking user type:", err);
+        setError("Unable to determine your user type. Please try again later.");
       } finally {
         setIsChecking(false);
       }
     };
     
-    redirectBasedOnRole();
+    redirectBasedOnUserType();
   }, [user, navigate, authLoading]);
 
   // Show loading while checking auth or role

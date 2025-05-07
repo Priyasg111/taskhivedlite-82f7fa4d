@@ -1,15 +1,53 @@
 
+import { useEffect, useState } from "react";
 import NavBar from "@/components/NavBar";
 import Dashboard from "@/components/Dashboard";
 import ProjectDashboard from "@/components/ProjectDashboard";
 import MessageCenter from "@/components/MessageCenter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user } = useAuth();
+  const [userType, setUserType] = useState<string | null>(null);
+
+  // Fetch user type when the user is available
+  useEffect(() => {
+    const fetchUserType = async () => {
+      if (!user) {
+        setUserType(null);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching user type:", error);
+          return;
+        }
+        
+        setUserType(data.user_type);
+      } catch (err) {
+        console.error("Failed to fetch user type:", err);
+      }
+    };
+    
+    fetchUserType();
+  }, [user]);
+
+  // Determine if user is a worker based on user_type
+  const isWorkerType = userType === 'worker';
+  
+  // Determine if user is an employer based on user_type
+  const isEmployerType = userType === 'employer';
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -52,18 +90,22 @@ const Index = () => {
           <Tabs defaultValue="available-tasks" className="space-y-8">
             <TabsList>
               <TabsTrigger value="available-tasks">Available Tasks</TabsTrigger>
-              <TabsTrigger value="projects">Projects</TabsTrigger>
+              {isEmployerType && (
+                <TabsTrigger value="projects">Projects</TabsTrigger>
+              )}
               <TabsTrigger value="messages">Messages</TabsTrigger>
-              <TabsTrigger value="payments">Payments</TabsTrigger>
+              <TabsTrigger value="payments">{isWorkerType ? "My Earnings" : "Payments"}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="available-tasks">
               <Dashboard />
             </TabsContent>
             
-            <TabsContent value="projects">
-              <ProjectDashboard />
-            </TabsContent>
+            {isEmployerType && (
+              <TabsContent value="projects">
+                <ProjectDashboard />
+              </TabsContent>
+            )}
             
             <TabsContent value="messages">
               <MessageCenter />
@@ -72,7 +114,7 @@ const Index = () => {
             <TabsContent value="payments">
               <div className="py-4">
                 <Link to="/payments" className="text-yellow-500 hover:underline">
-                  Go to full payment dashboard →
+                  Go to full {isWorkerType ? "earnings" : "payment"} dashboard →
                 </Link>
               </div>
             </TabsContent>

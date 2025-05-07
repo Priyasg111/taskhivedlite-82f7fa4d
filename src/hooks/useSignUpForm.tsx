@@ -6,7 +6,7 @@ import { useAuth } from "@/context/auth";
 import { SignupFormData, validateForm } from "@/components/form/ValidationSchema";
 
 export interface SignUpFormState {
-  formData: SignupFormData & { role: string };
+  formData: SignupFormData & { role: string; userType: string };
   errors: Record<string, string>;
   generalError: string;
   isLoading: boolean;
@@ -20,12 +20,13 @@ export function useSignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [formData, setFormData] = useState<SignupFormData & { role: string }>({
+  const [formData, setFormData] = useState<SignupFormData & { role: string; userType: string }>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     role: "worker",
+    userType: "worker",
     dateOfBirth: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,6 +55,12 @@ export function useSignUpForm() {
   const handleRoleChange = (role: string) => {
     setFormData((prev) => ({ ...prev, role }));
   };
+  
+  const handleUserTypeChange = (userType: string) => {
+    // If userType changes, also update role to match for compatibility
+    const role = userType === "employer" ? "client" : "worker";
+    setFormData((prev) => ({ ...prev, userType, role }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +88,7 @@ export function useSignUpForm() {
         description: "Attempting to create your account",
       });
       
-      const result = await signup(formData.name, formData.email, formData.password, formData.role);
+      const result = await signup(formData.name, formData.email, formData.password, formData.role, formData.userType);
       
       if (result === null) {
         setIsLoading(false);
@@ -143,6 +150,7 @@ export function useSignUpForm() {
     handleChange,
     handleDateChange,
     handleRoleChange,
+    handleUserTypeChange,
     handleSubmit
   };
 }

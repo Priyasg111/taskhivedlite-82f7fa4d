@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/auth";
 import { useKeepAlive } from "./hooks/useKeepAlive";
 import { useAuth } from "./context/auth";
+import { useEffect, useState } from "react";
+import { supabase } from "./integrations/supabase/client";
 import Index from "./pages/Index";
 import PostTask from "./pages/PostTask";
 import CompleteTasks from "./pages/CompleteTasks";
@@ -51,19 +53,55 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 // ClientOnlyRoute component to handle client-specific routes
 const ClientOnlyRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  const [userType, setUserType] = useState<string | null>(null);
+  const [isCheckingUserType, setIsCheckingUserType] = useState(true);
   
-  if (isLoading) {
+  // Fetch user type when the user is available
+  useEffect(() => {
+    const fetchUserType = async () => {
+      if (!user) {
+        setUserType(null);
+        setIsCheckingUserType(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching user type:", error);
+          setIsCheckingUserType(false);
+          return;
+        }
+        
+        setUserType(data.user_type);
+      } catch (err) {
+        console.error("Failed to fetch user type:", err);
+      } finally {
+        setIsCheckingUserType(false);
+      }
+    };
+    
+    fetchUserType();
+  }, [user]);
+  
+  if (isLoading || isCheckingUserType) {
     return <div className="h-screen w-full flex items-center justify-center">
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
     </div>;
   }
   
-  // Check if user is logged in and has client role
+  // Check if user is logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
   
-  if (user.user_metadata?.role !== 'client') {
+  // Check if user has client role or is employer type
+  if (user.user_metadata?.role !== 'client' && userType !== 'employer') {
     return <Navigate to="/unauthorized" replace />;
   }
   
@@ -73,8 +111,43 @@ const ClientOnlyRoute = ({ children }: { children: React.ReactNode }) => {
 // WorkerOnlyRoute component to handle worker-specific routes
 const WorkerOnlyRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  const [userType, setUserType] = useState<string | null>(null);
+  const [isCheckingUserType, setIsCheckingUserType] = useState(true);
   
-  if (isLoading) {
+  // Fetch user type when the user is available
+  useEffect(() => {
+    const fetchUserType = async () => {
+      if (!user) {
+        setUserType(null);
+        setIsCheckingUserType(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching user type:", error);
+          setIsCheckingUserType(false);
+          return;
+        }
+        
+        setUserType(data.user_type);
+      } catch (err) {
+        console.error("Failed to fetch user type:", err);
+      } finally {
+        setIsCheckingUserType(false);
+      }
+    };
+    
+    fetchUserType();
+  }, [user]);
+  
+  if (isLoading || isCheckingUserType) {
     return <div className="h-screen w-full flex items-center justify-center">
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
     </div>;
@@ -86,8 +159,8 @@ const WorkerOnlyRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to={`/login?returnTo=${currentPath}`} replace />;
   }
   
-  // Check if user has worker role
-  if (user.user_metadata?.role !== 'worker') {
+  // Check if user has worker role or is worker type
+  if (user.user_metadata?.role !== 'worker' && userType !== 'worker') {
     return <Navigate to="/unauthorized" replace />;
   }
   

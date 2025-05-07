@@ -79,6 +79,7 @@ export type Database = {
           role: string
           role_locked: boolean
           updated_at: string
+          user_type: string | null
           verified_tasks: number | null
           wallet_address: string | null
           wallet_status: string | null
@@ -98,6 +99,7 @@ export type Database = {
           role?: string
           role_locked?: boolean
           updated_at?: string
+          user_type?: string | null
           verified_tasks?: number | null
           wallet_address?: string | null
           wallet_status?: string | null
@@ -117,6 +119,7 @@ export type Database = {
           role?: string
           role_locked?: boolean
           updated_at?: string
+          user_type?: string | null
           verified_tasks?: number | null
           wallet_address?: string | null
           wallet_status?: string | null

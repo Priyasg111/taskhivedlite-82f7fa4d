@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/context/auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const NavBar = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userType, setUserType] = useState<string | null>(null);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -16,8 +18,46 @@ const NavBar = () => {
   // Check if user has client role
   const isClient = user?.user_metadata?.role === 'client';
   
-  // Check if user has worker role or is not authenticated
-  const isWorkerOrUnauthenticated = !user || user.user_metadata?.role === 'worker';
+  // Check if user has worker role
+  const isWorker = user?.user_metadata?.role === 'worker';
+  
+  // Check if user is a worker or not authenticated
+  const isWorkerOrUnauthenticated = !user || isWorker;
+
+  // Fetch user type from database
+  useEffect(() => {
+    const fetchUserType = async () => {
+      if (!user) {
+        setUserType(null);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching user type:", error);
+          return;
+        }
+        
+        setUserType(data.user_type);
+      } catch (err) {
+        console.error("Failed to fetch user type:", err);
+      }
+    };
+    
+    fetchUserType();
+  }, [user]);
+
+  // Determine if user is a worker based on user_type
+  const isWorkerType = userType === 'worker';
+  
+  // Determine if user is an employer based on user_type
+  const isEmployerType = userType === 'employer';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
@@ -50,7 +90,8 @@ const NavBar = () => {
                 <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
               </Link>
             )}
-            {isWorkerOrUnauthenticated && (
+            {/* Show Work on Tasks only to workers or unauthenticated users */}
+            {(isWorkerOrUnauthenticated && (!user || isWorkerType)) && (
               <Link
                 to="/complete-tasks"
                 className="text-sm font-medium transition-colors hover:text-primary relative group"
@@ -59,7 +100,8 @@ const NavBar = () => {
                 <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
               </Link>
             )}
-            {isClient && (
+            {/* Show Post a Task only to clients or employers */}
+            {(isClient || (user && isEmployerType)) && (
               <Link
                 to="/post-task"
                 className="text-sm font-medium transition-colors hover:text-primary relative group"
@@ -68,13 +110,16 @@ const NavBar = () => {
                 <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
               </Link>
             )}
-            <Link
-              to="/payments"
-              className="text-sm font-medium transition-colors hover:text-primary relative group"
-            >
-              Payments
-              <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
-            </Link>
+            {/* Show Payments to everyone when logged in, or conditionall based on type */}
+            {user && (
+              <Link
+                to="/payments"
+                className="text-sm font-medium transition-colors hover:text-primary relative group"
+              >
+                {isWorkerType ? "My Earnings" : "Payments"}
+                <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+              </Link>
+            )}
           </nav>
         </div>
         
@@ -88,7 +133,7 @@ const NavBar = () => {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full">
                 <div className="size-6 rounded-full bg-primary/20 flex items-center justify-center">
-                  <span className="text-xs font-medium">{user.name.charAt(0)}</span>
+                  <span className="text-xs font-medium">{user.name?.charAt(0)}</span>
                 </div>
                 <span className="text-sm">
                   {user.name} <span className="text-muted-foreground text-xs">({user.experience} hrs)</span>
@@ -148,7 +193,8 @@ const NavBar = () => {
                 Dashboard
               </Link>
             )}
-            {isWorkerOrUnauthenticated && (
+            {/* Show Work on Tasks only to workers or unauthenticated users */}
+            {(isWorkerOrUnauthenticated && (!user || isWorkerType)) && (
               <Link
                 to="/complete-tasks"
                 className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
@@ -157,7 +203,8 @@ const NavBar = () => {
                 Work on Tasks
               </Link>
             )}
-            {isClient && (
+            {/* Show Post a Task only to clients or employers */}
+            {(isClient || (user && isEmployerType)) && (
               <Link
                 to="/post-task"
                 className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
@@ -166,13 +213,16 @@ const NavBar = () => {
                 Post a Task
               </Link>
             )}
-            <Link
-              to="/payments"
-              className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Payments
-            </Link>
+            {/* Show Payments to everyone when logged in, or conditionally based on type */}
+            {user && (
+              <Link
+                to="/payments"
+                className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {isWorkerType ? "My Earnings" : "Payments"}
+              </Link>
+            )}
             {!user && (
               <div className="flex gap-3 pt-2 border-t border-border/30">
                 <Button variant="outline" className="flex-1" asChild>
