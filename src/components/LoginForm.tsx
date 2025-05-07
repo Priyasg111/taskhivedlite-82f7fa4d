@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -26,11 +28,38 @@ const LoginForm = () => {
 
     try {
       await login(email, password);
-      toast({
-        title: "Login successful!",
-        description: "Welcome back to TaskHived",
-      });
-      navigate("/");
+      
+      // Get user role from database
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData && userData.user) {
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', userData.user.id)
+          .single();
+        
+        // Show success toast
+        toast({
+          title: "Login successful!",
+          description: "Welcome back to TaskHived",
+        });
+        
+        // Redirect based on user role
+        if (profileData) {
+          const role = profileData.role as string;
+          if (role === 'worker') {
+            navigate("/worker-dashboard");
+          } else if (role === 'client' || role === 'employer') {
+            navigate("/employer-dashboard");
+          } else {
+            // Default fallback if role is not recognized
+            navigate("/");
+          }
+        } else {
+          // Default fallback if profile data not found
+          navigate("/");
+        }
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Invalid email or password";
       setError(errorMessage);

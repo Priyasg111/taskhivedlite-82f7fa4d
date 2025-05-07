@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,8 @@ import Signup from "./pages/Signup";
 import VerificationComplete from "./pages/VerificationComplete";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import WorkerDashboard from "./pages/WorkerDashboard";
+import EmployerDashboard from "./pages/EmployerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +51,8 @@ const AppContent = () => {
         <Route path="/verification-complete" element={<VerificationComplete />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/worker-dashboard" element={<WorkerDashboard />} />
+        <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>

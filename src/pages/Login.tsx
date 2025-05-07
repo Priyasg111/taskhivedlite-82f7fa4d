@@ -1,19 +1,64 @@
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "@/components/NavBar";
 import LoginForm from "@/components/LoginForm";
 import { useAuth } from "@/context/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isCheckingRole, setIsCheckingRole] = useState(true);
   
-  // Redirect if already logged in
+  // Redirect if already logged in based on role
   useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
+    const checkUserRole = async () => {
+      if (user) {
+        try {
+          const { data: profileData } = await supabase
+            .from('user_profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+          
+          if (profileData) {
+            const role = profileData.role as string;
+            if (role === 'worker') {
+              navigate("/worker-dashboard");
+            } else if (role === 'client' || role === 'employer') {
+              navigate("/employer-dashboard");
+            } else {
+              navigate("/");
+            }
+          } else {
+            navigate("/");
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          navigate("/");
+        } finally {
+          setIsCheckingRole(false);
+        }
+      } else {
+        setIsCheckingRole(false);
+      }
+    };
+    
+    checkUserRole();
   }, [user, navigate]);
+
+  // Show loading while checking role
+  if (user && isCheckingRole) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NavBar />
+        <main className="flex-1 container py-12 px-4 flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
