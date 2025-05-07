@@ -6,15 +6,19 @@ import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import NavBar from "@/components/NavBar";
+import ProjectDashboard from "@/components/ProjectDashboard";
+import { toast } from "@/hooks/use-toast";
+import Footer from "@/components/Footer";
 
 const Dashboard = () => {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userType, setUserType] = useState<string | null>(null);
 
   useEffect(() => {
-    const redirectBasedOnUserType = async () => {
+    const checkUserTypeAndRedirect = async () => {
       // If auth is still loading, wait
       if (authLoading) return;
       
@@ -43,21 +47,16 @@ const Dashboard = () => {
         
         if (profileData) {
           const userType = profileData.user_type;
+          setUserType(userType);
           
-          // Redirect based on user type
+          // Redirect worker users away from dashboard
           if (userType === 'worker') {
-            navigate("/task-room");
-          } else if (userType === 'employer') {
-            navigate("/employer-console");
-          } else {
-            // Fallback based on role if user_type doesn't help
-            if (user.user_metadata?.role === 'worker') {
-              navigate("/task-room");
-            } else if (user.user_metadata?.role === 'client') {
-              navigate("/employer-console");
-            } else {
-              navigate("/unauthorized");
-            }
+            toast({
+              title: "Access Restricted",
+              description: "This dashboard is only available to employers.",
+              variant: "destructive"
+            });
+            navigate("/complete-tasks");
           }
         } else {
           // No profile found, redirect to unauthorized
@@ -71,7 +70,7 @@ const Dashboard = () => {
       }
     };
     
-    redirectBasedOnUserType();
+    checkUserTypeAndRedirect();
   }, [user, navigate, authLoading]);
 
   // Show loading while checking auth or role
@@ -84,10 +83,11 @@ const Dashboard = () => {
             <div className="mb-4">
               <div className="h-12 w-12 mx-auto animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
             </div>
-            <h1 className="text-2xl font-semibold">Redirecting to your dashboard...</h1>
+            <h1 className="text-2xl font-semibold">Loading dashboard...</h1>
             <p className="mt-2 text-muted-foreground">Please wait while we determine your access level.</p>
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
@@ -108,12 +108,53 @@ const Dashboard = () => {
             </Button>
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
 
-  // This should rarely be seen as we should redirect before this renders
-  return null;
+  // If user is not an employer (e.g., worker or no user_type set)
+  if (userType !== 'employer') {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NavBar />
+        <main className="flex-1 container py-16 px-4 flex items-center justify-center">
+          <div className="max-w-md w-full text-center">
+            <div className="bg-amber-100 text-amber-800 p-6 rounded-lg mb-8">
+              <h1 className="text-2xl font-semibold mb-2">Employer Access Only</h1>
+              <p>This dashboard is only available to employer accounts.</p>
+            </div>
+            <div className="space-y-4">
+              <Button asChild size="lg" className="w-full">
+                <Link to="/complete-tasks">Browse Available Tasks</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full">
+                <Link to="/">Return to Homepage</Link>
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Render employer dashboard
+  return (
+    <div className="min-h-screen flex flex-col">
+      <NavBar />
+      <main className="flex-1 container py-8 px-4">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Employer Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your projects, tasks, and payments.
+          </p>
+        </div>
+        <ProjectDashboard />
+      </main>
+      <Footer />
+    </div>
+  );
 };
 
 export default Dashboard;
