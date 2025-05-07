@@ -1,11 +1,11 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/auth";
 import { useKeepAlive } from "./hooks/useKeepAlive";
+import { useAuth } from "./context/auth";
 import Index from "./pages/Index";
 import PostTask from "./pages/PostTask";
 import CompleteTasks from "./pages/CompleteTasks";
@@ -27,6 +27,25 @@ import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
+
+// ProtectedRoute component to handle authentication and redirection
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="h-screen w-full flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>;
+  }
+  
+  if (!user) {
+    // Redirect to login with returnTo parameter
+    const currentPath = window.location.pathname;
+    return <Navigate to={`/login?returnTo=${currentPath}`} replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 const AppContent = () => {
   // Initialize the keep-alive ping with online detection

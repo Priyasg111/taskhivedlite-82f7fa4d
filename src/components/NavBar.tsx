@@ -37,6 +37,15 @@ const NavBar = () => {
               Browse Tasks
               <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
             </Link>
+            {user && (
+              <Link
+                to="/dashboard"
+                className="text-sm font-medium transition-colors hover:text-primary relative group"
+              >
+                Dashboard
+                <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+              </Link>
+            )}
             <Link
               to="/complete-tasks"
               className="text-sm font-medium transition-colors hover:text-primary relative group"
@@ -124,6 +133,15 @@ const NavBar = () => {
             >
               Browse Tasks
             </Link>
+            {user && (
+              <Link
+                to="/dashboard"
+                className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <Link
               to="/complete-tasks"
               className="text-sm font-medium p-2 rounded-md hover:bg-primary/10"
