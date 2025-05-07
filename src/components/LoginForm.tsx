@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,14 +13,27 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 const LoginForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [returnPath, setReturnPath] = useState("/dashboard"); // Default return path
   
-  // Get any returnUrl and message from the location state
-  const returnUrl = location.state?.returnUrl || "/";
+  // Get returnTo from query parameters or from location state
+  useEffect(() => {
+    // Check query parameters first (higher priority)
+    const returnToParam = searchParams.get('returnTo');
+    if (returnToParam) {
+      setReturnPath(returnToParam);
+    } else if (location.state?.returnUrl) {
+      // Fall back to location state if set
+      setReturnPath(location.state.returnUrl);
+    }
+  }, [searchParams, location.state]);
+  
+  // Get any message from the location state
   const message = location.state?.message;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,25 +63,8 @@ const LoginForm = () => {
           description: "Welcome back to TaskHived",
         });
         
-        // First try to redirect to returnUrl if it exists
-        if (returnUrl && returnUrl !== "/") {
-          navigate(returnUrl);
-        }
-        // Otherwise, redirect based on user role
-        else if (profileData) {
-          const role = profileData.role as string;
-          if (role === 'worker') {
-            navigate("/task-room");
-          } else if (role === 'client' || role === 'employer') {
-            navigate("/employer-console");
-          } else {
-            // Default fallback if role is not recognized
-            navigate("/");
-          }
-        } else {
-          // Default fallback if profile data not found
-          navigate("/");
-        }
+        // Navigate to the saved return path
+        navigate(returnPath);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Invalid email or password";

@@ -25,18 +25,18 @@ const Login = () => {
           if (profileData) {
             const role = profileData.role as string;
             if (role === 'worker') {
-              navigate("/task-room"); // Updated to go to the new TaskRoom page
+              navigate("/task-room");
             } else if (role === 'client' || role === 'employer') {
               navigate("/employer-console");
             } else {
-              navigate("/");
+              navigate("/dashboard"); // Default to dashboard which will route appropriately
             }
           } else {
-            navigate("/");
+            navigate("/dashboard");
           }
         } catch (error) {
           console.error("Error fetching user role:", error);
-          navigate("/");
+          navigate("/dashboard");
         } finally {
           setIsCheckingRole(false);
         }
