@@ -1,32 +1,8 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
 import NavBar from "@/components/NavBar";
 import TaskPostForm from "@/components/TaskPostForm";
 
 const PostTask = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Redirect if user is not logged in or is not a client
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    
-    if (user.user_metadata?.role !== 'client') {
-      navigate("/");
-      return;
-    }
-  }, [user, navigate]);
-
-  // If not authorized, don't render the content
-  if (!user || user.user_metadata?.role !== 'client') {
-    return null;
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />

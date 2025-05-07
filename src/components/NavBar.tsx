@@ -13,6 +13,7 @@ const NavBar = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // Check if user has client role
   const isClient = user?.user_metadata?.role === 'client';
 
   return (

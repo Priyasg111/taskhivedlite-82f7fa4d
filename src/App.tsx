@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -47,6 +48,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// ClientOnlyRoute component to handle client-specific routes
+const ClientOnlyRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="h-screen w-full flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>;
+  }
+  
+  // Check if user is logged in and has client role
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (user.user_metadata?.role !== 'client') {
+    return <Navigate to="/unauthorized" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const AppContent = () => {
   // Initialize the keep-alive ping with online detection
   const { isOnline } = useKeepAlive();
@@ -62,7 +85,7 @@ const AppContent = () => {
       )}
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/post-task" element={<PostTask />} />
+        <Route path="/post-task" element={<ClientOnlyRoute><PostTask /></ClientOnlyRoute>} />
         <Route path="/complete-tasks" element={<CompleteTasks />} />
         <Route path="/complete-tasks/:taskId" element={<CompleteTasks />} />
         <Route path="/payments" element={<Payments />} />
