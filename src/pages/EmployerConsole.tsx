@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import NavBar from "@/components/NavBar";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 const EmployerConsole = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
   const [metrics, setMetrics] = useState({
     tasks: 0,
@@ -32,74 +32,105 @@ const EmployerConsole = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEmployerData = async () => {
-      if (!user) return;
-      
+    // Redirect if user is not logged in
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    // Check user role
+    const checkUserRole = async () => {
       try {
-        // Fetch user profile data
-        const { data: profileData } = await supabase
+        const { data: profileData, error } = await supabase
           .from('user_profiles')
-          .select('email')
+          .select('role')
           .eq('id', user.id)
           .single();
-          
-        if (profileData) {
-          // Extract username from email
-          const email = profileData.email || '';
-          const userName = email.split('@')[0] || 'Employer';
-          setUserName(userName);
+
+        if (error) throw error;
+        
+        // If user is not an employer/client, redirect to unauthorized page
+        if (profileData.role !== 'employer' && profileData.role !== 'client') {
+          navigate("/unauthorized");
+          return;
         }
-
-        // For demo purposes, set some mock data
-        setMetrics({
-          tasks: 12,
-          workers: 8,
-          reviews: 24
-        });
-
-        setRecentActivities([
-          { 
-            id: '1', 
-            action: 'Task Completed', 
-            description: 'Data entry task completed by John D.',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) 
-          },
-          { 
-            id: '2', 
-            action: 'Task Verified', 
-            description: 'Content review passed AI verification',
-            timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000) 
-          },
-          { 
-            id: '3', 
-            action: 'Worker Joined', 
-            description: 'Sarah M. accepted your task invitation',
-            timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) 
-          },
-          { 
-            id: '4', 
-            action: 'Payment Processed', 
-            description: 'Successfully paid out 5 completed tasks',
-            timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) 
-          }
-        ]);
-
-        setWorkers([
-          { id: '1', name: 'John Doe', currentTask: 'Data Entry for Q1 Reports', status: 'In Progress' },
-          { id: '2', name: 'Sarah Miller', currentTask: 'Content Translation', status: 'In Progress' },
-          { id: '3', name: 'David Wilson', currentTask: null, status: 'Available' },
-          { id: '4', name: 'Emily Brown', currentTask: 'Image Tagging', status: 'In Progress' },
-          { id: '5', name: 'Michael Jones', currentTask: null, status: 'Available' }
-        ]);
-      } catch (error) {
-        console.error('Error fetching employer data:', error);
-      } finally {
-        setLoading(false);
+        
+        // Continue loading data for employer
+        fetchEmployerData();
+      } catch (err) {
+        console.error("Error checking user role:", err);
+        navigate("/unauthorized");
       }
     };
+
+    checkUserRole();
+  }, [user, navigate]);
+
+  const fetchEmployerData = async () => {
+    if (!user) return;
     
-    fetchEmployerData();
-  }, [user]);
+    try {
+      // Fetch user profile data
+      const { data: profileData } = await supabase
+        .from('user_profiles')
+        .select('email')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileData) {
+        // Extract username from email
+        const email = profileData.email || '';
+        const userName = email.split('@')[0] || 'Employer';
+        setUserName(userName);
+      }
+
+      // For demo purposes, set some mock data
+      setMetrics({
+        tasks: 12,
+        workers: 8,
+        reviews: 24
+      });
+
+      setRecentActivities([
+        { 
+          id: '1', 
+          action: 'Task Completed', 
+          description: 'Data entry task completed by John D.',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) 
+        },
+        { 
+          id: '2', 
+          action: 'Task Verified', 
+          description: 'Content review passed AI verification',
+          timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000) 
+        },
+        { 
+          id: '3', 
+          action: 'Worker Joined', 
+          description: 'Sarah M. accepted your task invitation',
+          timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) 
+        },
+        { 
+          id: '4', 
+          action: 'Payment Processed', 
+          description: 'Successfully paid out 5 completed tasks',
+          timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) 
+        }
+      ]);
+
+      setWorkers([
+        { id: '1', name: 'John Doe', currentTask: 'Data Entry for Q1 Reports', status: 'In Progress' },
+        { id: '2', name: 'Sarah Miller', currentTask: 'Content Translation', status: 'In Progress' },
+        { id: '3', name: 'David Wilson', currentTask: null, status: 'Available' },
+        { id: '4', name: 'Emily Brown', currentTask: 'Image Tagging', status: 'In Progress' },
+        { id: '5', name: 'Michael Jones', currentTask: null, status: 'Available' }
+      ]);
+    } catch (error) {
+      console.error('Error fetching employer data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (date: Date) => {
     const now = new Date();
@@ -114,6 +145,17 @@ const EmployerConsole = () => {
       return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NavBar />
+        <main className="flex-1 container py-8 px-4 flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
