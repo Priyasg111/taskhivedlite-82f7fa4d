@@ -22,6 +22,7 @@ import ResetPassword from "./pages/ResetPassword";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import EmployerDashboard from "./pages/EmployerDashboard";
 import EmployerConsole from "./pages/EmployerConsole";
+import TaskRoom from "./pages/TaskRoom";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const AppContent = () => {
         <Route path="/worker-dashboard" element={<WorkerDashboard />} />
         <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="/employer-console" element={<EmployerConsole />} />
+        <Route path="/task-room" element={<TaskRoom />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>

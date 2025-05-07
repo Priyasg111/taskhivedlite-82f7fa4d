@@ -48,9 +48,9 @@ const LoginForm = () => {
         if (profileData) {
           const role = profileData.role as string;
           if (role === 'worker') {
-            navigate("/worker-dashboard");
+            navigate("/task-room"); // Updated to go to the new TaskRoom page
           } else if (role === 'client' || role === 'employer') {
-            navigate("/employer-console"); // Updated to go to the new console
+            navigate("/employer-console");
           } else {
             // Default fallback if role is not recognized
             navigate("/");
