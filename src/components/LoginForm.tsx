@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,14 +7,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  
+  // Get any returnUrl and message from the location state
+  const returnUrl = location.state?.returnUrl || "/";
+  const message = location.state?.message;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +49,12 @@ const LoginForm = () => {
           description: "Welcome back to TaskHived",
         });
         
-        // Redirect based on user role
-        if (profileData) {
+        // First try to redirect to returnUrl if it exists
+        if (returnUrl && returnUrl !== "/") {
+          navigate(returnUrl);
+        }
+        // Otherwise, redirect based on user role
+        else if (profileData) {
           const role = profileData.role as string;
           if (role === 'worker') {
             navigate("/task-room");
@@ -75,11 +84,18 @@ const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {message && (
+          <Alert className="mb-4">
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
+        )}
+        
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
