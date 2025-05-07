@@ -50,7 +50,7 @@ const LoginForm = () => {
           if (role === 'worker') {
             navigate("/worker-dashboard");
           } else if (role === 'client' || role === 'employer') {
-            navigate("/employer-dashboard");
+            navigate("/employer-console"); // Updated to go to the new console
           } else {
             // Default fallback if role is not recognized
             navigate("/");
