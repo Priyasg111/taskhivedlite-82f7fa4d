@@ -62,22 +62,28 @@ const LoginForm = () => {
           description: "Welcome back to TaskHived",
         });
         
+        console.log("LoginForm - Login successful, user profile:", profileData);
+        
         // Decide where to navigate based on user type and return path
         if (profileData) {
           // Prioritize user_type, fall back to role if needed
           const userType = profileData.user_type || profileData.role;
+          console.log("LoginForm - User type:", userType, "Return path:", returnPath);
           
           // If returnPath is specified, prioritize that
           if (returnPath && returnPath !== '/dashboard') {
+            console.log("LoginForm - Redirecting to return path:", returnPath);
             navigate(returnPath);
             return;
           }
           
           // Otherwise route based on role
           if (userType === 'worker') {
+            console.log("LoginForm - Redirecting to worker dashboard");
             navigate('/worker-dashboard');
             return;
           } else if (userType === 'employer' || userType === 'client') {
+            console.log("LoginForm - Redirecting to employer dashboard");
             navigate('/employer-dashboard');
             return;
           }

@@ -27,17 +27,21 @@ const Login = () => {
           if (profileData) {
             // Prioritize user_type field, fall back to role if needed
             const userType = profileData.user_type || profileData.role;
+            console.log("Login page - User type:", userType);
             
             // If returnTo parameter exists, use that for redirection
             if (returnTo) {
+              console.log("Login page - Redirecting to:", returnTo);
               navigate(returnTo);
               return;
             }
             
             // Otherwise redirect based on user type
             if (userType === 'worker') {
+              console.log("Login page - Redirecting to worker dashboard");
               navigate("/worker-dashboard");
             } else if (userType === 'employer' || userType === 'client') {
+              console.log("Login page - Redirecting to employer dashboard");
               navigate("/employer-dashboard");
             } else {
               navigate("/dashboard"); // Default to dashboard which will route appropriately

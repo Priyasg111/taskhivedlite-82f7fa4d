@@ -33,6 +33,7 @@ export const EmployerOnlyRoute = ({ children }: { children: React.ReactNode }) =
         
         // Prioritize user_type, fall back to role if needed
         setUserType(data.user_type || data.role);
+        console.log("Employer route - User type:", data.user_type || data.role);
       } catch (err) {
         console.error("Failed to fetch user type:", err);
       } finally {
@@ -59,8 +60,10 @@ export const EmployerOnlyRoute = ({ children }: { children: React.ReactNode }) =
   
   // Check if user has employer role or is employer type
   if (userType !== 'employer' && userType !== 'client') {
+    console.log("Unauthorized access attempt to employer route by user type:", userType);
     return <Navigate to="/unauthorized" replace />;
   }
   
+  console.log("Employer route - Access granted to user with type:", userType);
   return <>{children}</>;
 };
