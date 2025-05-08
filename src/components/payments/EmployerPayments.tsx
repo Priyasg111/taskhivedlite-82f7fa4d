@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, CreditCard, History, Wallet, ArrowDown } from "lucide-react";
+import { Transaction } from "@/types/transaction";
 
 const EmployerPayments = () => {
   const { user } = useAuth();
@@ -15,11 +16,11 @@ const EmployerPayments = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [depositAmount, setDepositAmount] = useState("");
   const [credits, setCredits] = useState(0);
-  const [transactions, setTransactions] = useState([]);
-  const [pendingPayments, setPendingPayments] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   
   // Fetch employer's credit balance and payment history
-  useState(() => {
+  useEffect(() => {
     const fetchCreditsAndHistory = async () => {
       if (!user) return;
       
@@ -35,16 +36,9 @@ const EmployerPayments = () => {
         
         setCredits(profileData?.credits || 0);
         
-        // Fetch transaction history
-        const { data: transactionsData, error: transactionsError } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-          
-        if (transactionsError) throw transactionsError;
-        
-        setTransactions(transactionsData || []);
+        // Note: This would require a transactions table in the database
+        // For now, we'll just use an empty array since the table doesn't exist yet
+        setTransactions([]);
         
         // Fetch pending payments (tasks with 'verified' status but 'pending' payment)
         const { data: pendingTasksData, error: pendingTasksError } = await supabase
@@ -152,7 +146,7 @@ const EmployerPayments = () => {
   };
   
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric", 
       month: "short", 

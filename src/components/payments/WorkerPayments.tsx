@@ -22,7 +22,7 @@ const WorkerPayments = () => {
   const [walletType, setWalletType] = useState("crypto");
   const [cryptoToken, setCryptoToken] = useState("USDC");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   
   // Fetch worker payment details
   useEffect(() => {
@@ -58,7 +58,7 @@ const WorkerPayments = () => {
         if (paidTasksError) throw paidTasksError;
         
         // Calculate total earnings from paid tasks
-        const totalPaid = paidTasks?.reduce((sum, task) => sum + (parseFloat(task.payment) || 0), 0) || 0;
+        const totalPaid = paidTasks?.reduce((sum, task) => sum + (parseFloat(task.payment.toString()) || 0), 0) || 0;
         setTotalEarnings(totalPaid);
         setAvailableBalance(totalPaid); // In a real system, this would subtract withdrawals
         
@@ -72,10 +72,10 @@ const WorkerPayments = () => {
           
         if (pendingTasksError) throw pendingTasksError;
         
-        const totalPending = pendingTasks?.reduce((sum, task) => sum + (parseFloat(task.payment) || 0), 0) || 0;
+        const totalPending = pendingTasks?.reduce((sum, task) => sum + (parseFloat(task.payment.toString()) || 0), 0) || 0;
         setPendingEarnings(totalPending);
         
-        // Fetch withdrawal history
+        // Fetch payment history
         // In a real app, this would come from a separate withdrawals or transactions table
         // For this demo, we'll simulate with tasks data
         const { data: historyData, error: historyError } = await supabase
@@ -196,7 +196,7 @@ const WorkerPayments = () => {
   };
   
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric", 
       month: "short", 
