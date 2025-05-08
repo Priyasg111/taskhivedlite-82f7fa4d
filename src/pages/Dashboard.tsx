@@ -51,18 +51,21 @@ const Dashboard = () => {
           
           console.log("Dashboard - User type detected:", userType);
           
+          // For debugging, dump the raw profile data
+          console.log("Dashboard - Raw profile data:", JSON.stringify(profileData));
+          
           // Redirect based on role/user type
           if (userType === 'worker') {
-            console.log("Redirecting to worker dashboard");
+            console.log("Dashboard - Redirecting to worker dashboard");
             navigate("/worker-dashboard");
             return;
           } else if (userType === 'employer' || userType === 'client') {
-            console.log("Redirecting to employer dashboard");
+            console.log("Dashboard - Redirecting to employer dashboard");
             navigate("/employer-dashboard");
             return;
           } else {
             // No valid role found
-            console.error("Invalid user type:", userType);
+            console.error("Dashboard - Invalid user type:", userType);
             toast({
               title: "Access Error",
               description: "Your account doesn't have a valid role assigned",
@@ -71,7 +74,7 @@ const Dashboard = () => {
           }
         } else {
           // No profile found, redirect to unauthorized
-          console.error("No profile found for user");
+          console.error("Dashboard - No profile found for user");
           navigate("/unauthorized");
         }
       } catch (err) {

@@ -26,9 +26,11 @@ const LoginForm = () => {
     const returnToParam = searchParams.get('returnTo');
     if (returnToParam) {
       setReturnPath(returnToParam);
+      console.log("LoginForm - Return path from URL:", returnToParam);
     } else if (location.state?.returnUrl) {
       // Fall back to location state if set
       setReturnPath(location.state.returnUrl);
+      console.log("LoginForm - Return path from state:", location.state.returnUrl);
     }
   }, [searchParams, location.state]);
   
@@ -69,6 +71,9 @@ const LoginForm = () => {
           // Prioritize user_type, fall back to role if needed
           const userType = profileData.user_type || profileData.role;
           console.log("LoginForm - User type:", userType, "Return path:", returnPath);
+          
+          // For debugging, dump the raw profile data
+          console.log("LoginForm - Raw profile data:", JSON.stringify(profileData));
           
           // If returnPath is specified, prioritize that
           if (returnPath && returnPath !== '/dashboard') {

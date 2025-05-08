@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export const EmployerOnlyRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -31,9 +32,17 @@ export const EmployerOnlyRoute = ({ children }: { children: React.ReactNode }) =
           return;
         }
         
-        // Prioritize user_type, fall back to role if needed
-        setUserType(data.user_type || data.role);
-        console.log("Employer route - User type:", data.user_type || data.role);
+        // Explicitly check for employer/client types
+        const type = data.user_type || data.role;
+        setUserType(type);
+        console.log("Employer route - User type detected:", type);
+        
+        // Verify the value is what we expect for debugging
+        if (type === 'employer' || type === 'client') {
+          console.log("Employer route - Valid employer/client type confirmed:", type);
+        } else {
+          console.log("Employer route - NOT a valid employer/client type:", type);
+        }
       } catch (err) {
         console.error("Failed to fetch user type:", err);
       } finally {
@@ -55,12 +64,21 @@ export const EmployerOnlyRoute = ({ children }: { children: React.ReactNode }) =
   // Allow unauthenticated users but redirect to login
   if (!user) {
     const currentPath = window.location.pathname;
+    toast({
+      title: "Authentication required",
+      description: "Please log in to access the employer dashboard",
+    });
     return <Navigate to={`/login?returnTo=${currentPath}`} replace />;
   }
   
   // Check if user has employer role or is employer type
   if (userType !== 'employer' && userType !== 'client') {
     console.log("Unauthorized access attempt to employer route by user type:", userType);
+    toast({
+      title: "Access Denied",
+      description: "You don't have permission to access the employer dashboard",
+      variant: "destructive"
+    });
     return <Navigate to="/unauthorized" replace />;
   }
   
