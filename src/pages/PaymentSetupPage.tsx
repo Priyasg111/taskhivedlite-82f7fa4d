@@ -1,8 +1,9 @@
 
 import NavBar from "@/components/NavBar";
 import PaymentSetup from "@/components/payment/PaymentSetup";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { Navigate } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 const PaymentSetupPage = () => {
   const { user } = useAuth();
@@ -27,18 +28,7 @@ const PaymentSetupPage = () => {
           <PaymentSetup />
         </div>
       </main>
-      <footer className="border-t py-6">
-        <div className="container flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            © 2025 TaskHived - AI-Verified Microtask Marketplace
-          </div>
-          <div className="flex gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Contact</a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
