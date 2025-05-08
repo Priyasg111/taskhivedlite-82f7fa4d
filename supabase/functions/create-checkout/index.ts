@@ -19,6 +19,13 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") as string;
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") as string;
 
+    if (!stripeSecretKey) {
+      return new Response(JSON.stringify({ error: "Stripe API key not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Initialize Supabase client
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -46,8 +53,37 @@ serve(async (req) => {
       });
     }
 
+    // Check user type - only employers should be able to add funds
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from('user_profiles')
+      .select('user_type, role')
+      .eq('id', user.id)
+      .single();
+      
+    if (profileError) {
+      return new Response(JSON.stringify({ error: "Error fetching user profile" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    const userType = profileData?.user_type || profileData?.role;
+    if (userType !== 'employer' && userType !== 'client') {
+      return new Response(JSON.stringify({ error: "Only employers can add funds" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Parse request body
     const { amount, credits } = await req.json();
+
+    if (!amount || amount <= 0) {
+      return new Response(JSON.stringify({ error: "Invalid amount" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Initialize Stripe
     const stripe = new Stripe(stripeSecretKey, {
@@ -65,7 +101,7 @@ serve(async (req) => {
               name: "TaskHived Credits",
               description: `${credits} credits for posting tasks`,
             },
-            unit_amount: amount * 100, // amount in cents
+            unit_amount: Math.round(amount * 100), // amount in cents
           },
           quantity: 1,
         },
@@ -84,6 +120,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    console.error("Checkout error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

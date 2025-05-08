@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/auth";
 import NavBar from "@/components/NavBar";
-import PaymentSystem from "@/components/PaymentSystem";
+import RoleBasedPayments from "@/components/payments/RoleBasedPayments";
 import Footer from "@/components/Footer";
-import WorkerDashboard from "@/components/WorkerDashboard";
 
 const Payments = () => {
   const { user } = useAuth();
@@ -22,14 +21,15 @@ const Payments = () => {
       try {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('user_type')
+          .select('user_type, role')
           .eq('id', user.id)
           .single();
           
         if (error) {
           console.error("Error fetching user type:", error);
         } else {
-          setUserType(data?.user_type || null);
+          // Prioritize user_type, fall back to role
+          setUserType(data?.user_type || data?.role || null);
         }
       } catch (err) {
         console.error("Error checking user type:", err);
@@ -41,35 +41,22 @@ const Payments = () => {
     fetchUserType();
   }, [user]);
 
-  // Show loading while checking user type
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <NavBar />
-        <main className="flex-1 container py-8 px-4 flex items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
       <main className="flex-1 container py-8 px-4">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">
-            {userType === 'employer' ? 'Project Payments' : 'Earnings Dashboard'}
+            {userType === 'employer' || userType === 'client' ? 'Project Payments' : 'Earnings Dashboard'}
           </h1>
           <p className="text-muted-foreground mt-2">
-            {userType === 'employer' 
-              ? 'Manage your project payments, view invoices, and payment history.'
-              : 'Manage your earnings, connect your wallet, and withdraw funds.'}
+            {userType === 'employer' || userType === 'client' 
+              ? 'Manage your project payments, add funds, and pay workers for completed tasks.'
+              : 'Track your earnings, withdraw funds, and view payment history.'}
           </p>
         </div>
         
-        {userType === 'employer' ? <PaymentSystem /> : <WorkerDashboard />}
+        <RoleBasedPayments />
       </main>
       <Footer />
     </div>
