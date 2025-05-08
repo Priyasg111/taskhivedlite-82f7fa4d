@@ -21,7 +21,7 @@ export const WorkerOnlyRoute = ({ children }: { children: React.ReactNode }) => 
       try {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('user_type')
+          .select('user_type, role')
           .eq('id', user.id)
           .single();
           
@@ -31,7 +31,8 @@ export const WorkerOnlyRoute = ({ children }: { children: React.ReactNode }) => 
           return;
         }
         
-        setUserType(data.user_type);
+        // Prioritize user_type, fall back to role if needed
+        setUserType(data.user_type || data.role);
       } catch (err) {
         console.error("Failed to fetch user type:", err);
       } finally {
@@ -57,7 +58,7 @@ export const WorkerOnlyRoute = ({ children }: { children: React.ReactNode }) => 
   }
   
   // Check if user has worker role or is worker type
-  if (user.user_metadata?.role !== 'worker' && userType !== 'worker') {
+  if (userType !== 'worker') {
     return <Navigate to="/unauthorized" replace />;
   }
   

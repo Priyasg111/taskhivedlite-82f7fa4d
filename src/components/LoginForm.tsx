@@ -48,12 +48,12 @@ const LoginForm = () => {
     try {
       await login(email, password);
       
-      // Get user role from database
+      // Get user type from database to determine redirection
       const { data: userData } = await supabase.auth.getUser();
       if (userData && userData.user) {
         const { data: profileData } = await supabase
           .from('user_profiles')
-          .select('role')
+          .select('user_type, role')
           .eq('id', userData.user.id)
           .single();
         
@@ -63,7 +63,24 @@ const LoginForm = () => {
           description: "Welcome back to TaskHived",
         });
         
-        // Navigate to the saved return path
+        // Decide where to navigate based on user type and return path
+        if (profileData) {
+          // Prioritize user_type, fall back to role if needed
+          const userType = profileData.user_type || profileData.role;
+          
+          // If returnPath is dashboard, we should route based on role
+          if (returnPath === '/dashboard') {
+            if (userType === 'worker') {
+              navigate('/task-room');
+              return;
+            } else if (userType === 'employer' || userType === 'client') {
+              navigate('/employer-console');
+              return;
+            }
+          }
+        }
+        
+        // Navigate to the saved return path if we haven't redirected elsewhere
         navigate(returnPath);
       }
     } catch (err) {

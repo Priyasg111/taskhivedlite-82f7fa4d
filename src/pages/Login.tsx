@@ -18,15 +18,17 @@ const Login = () => {
         try {
           const { data: profileData } = await supabase
             .from('user_profiles')
-            .select('role')
+            .select('user_type, role')
             .eq('id', user.id)
             .single();
           
           if (profileData) {
-            const role = profileData.role as string;
-            if (role === 'worker') {
+            // Prioritize user_type field, fall back to role if needed
+            const userType = profileData.user_type || profileData.role;
+            
+            if (userType === 'worker') {
               navigate("/task-room");
-            } else if (role === 'client' || role === 'employer') {
+            } else if (userType === 'employer' || userType === 'client') {
               navigate("/employer-console");
             } else {
               navigate("/dashboard"); // Default to dashboard which will route appropriately

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +36,7 @@ const Dashboard = () => {
         // Get user type from profile
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
-          .select('user_type')
+          .select('user_type, role')
           .eq('id', user.id)
           .single();
           
@@ -46,7 +45,8 @@ const Dashboard = () => {
         }
         
         if (profileData) {
-          const userType = profileData.user_type;
+          // Prioritize user_type, fall back to role if needed
+          const userType = profileData.user_type || profileData.role;
           setUserType(userType);
           
           // Redirect worker users away from dashboard
@@ -56,7 +56,7 @@ const Dashboard = () => {
               description: "This dashboard is only available to employers.",
               variant: "destructive"
             });
-            navigate("/complete-tasks");
+            navigate("/task-room");
           }
         } else {
           // No profile found, redirect to unauthorized
@@ -114,7 +114,7 @@ const Dashboard = () => {
   }
 
   // If user is not an employer (e.g., worker or no user_type set)
-  if (userType !== 'employer') {
+  if (userType !== 'employer' && userType !== 'client') {
     return (
       <div className="min-h-screen flex flex-col">
         <NavBar />
