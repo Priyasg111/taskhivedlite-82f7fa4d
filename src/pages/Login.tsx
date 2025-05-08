@@ -4,6 +4,7 @@ import NavBar from "@/components/NavBar";
 import LoginForm from "@/components/LoginForm";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/integrations/supabase/client";
+import Footer from "@/components/Footer";
 
 const Login = () => {
   const { user } = useAuth();
@@ -35,9 +36,9 @@ const Login = () => {
             
             // Otherwise redirect based on user type
             if (userType === 'worker') {
-              navigate("/task-room");
+              navigate("/worker-dashboard");
             } else if (userType === 'employer' || userType === 'client') {
-              navigate("/employer-console");
+              navigate("/employer-dashboard");
             } else {
               navigate("/dashboard"); // Default to dashboard which will route appropriately
             }
@@ -66,6 +67,7 @@ const Login = () => {
         <main className="flex-1 container py-12 px-4 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </main>
+        <Footer />
       </div>
     );
   }

@@ -6,7 +6,6 @@ import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import NavBar from "@/components/NavBar";
-import ProjectDashboard from "@/components/ProjectDashboard";
 import { toast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 
@@ -50,18 +49,18 @@ const Dashboard = () => {
           const userType = profileData.user_type || profileData.role;
           setUserType(userType);
           
-          // Redirect worker users away from dashboard
+          // Redirect based on role/user type
           if (userType === 'worker') {
+            navigate("/worker-dashboard");
+          } else if (userType === 'employer' || userType === 'client') {
+            navigate("/employer-dashboard");
+          } else {
+            // No valid role found
             toast({
-              title: "Access Restricted",
-              description: "This dashboard is only available to employers.",
+              title: "Access Error",
+              description: "Your account doesn't have a valid role assigned",
               variant: "destructive"
             });
-            navigate("/task-room");
-          }
-          // Redirect employers to the employer console
-          else if (userType === 'employer' || userType === 'client') {
-            navigate("/employer-console");
           }
         } else {
           // No profile found, redirect to unauthorized
@@ -118,44 +117,25 @@ const Dashboard = () => {
     );
   }
 
-  // If user is not an employer (e.g., worker or no user_type set)
-  if (userType !== 'employer' && userType !== 'client') {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <NavBar />
-        <main className="flex-1 container py-16 px-4 flex items-center justify-center">
-          <div className="max-w-md w-full text-center">
-            <div className="bg-amber-100 text-amber-800 p-6 rounded-lg mb-8">
-              <h1 className="text-2xl font-semibold mb-2">Employer Access Only</h1>
-              <p>This dashboard is only available to employer accounts.</p>
-            </div>
-            <div className="space-y-4">
-              <Button asChild size="lg" className="w-full">
-                <Link to="/complete-tasks">Browse Available Tasks</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full">
-                <Link to="/">Return to Homepage</Link>
-              </Button>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Render employer dashboard
+  // Fallback content - this shouldn't render since we redirect
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
-      <main className="flex-1 container py-8 px-4">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Employer Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your projects, tasks, and payments.
-          </p>
+      <main className="flex-1 container py-16 px-4 flex items-center justify-center">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-amber-100 text-amber-800 p-6 rounded-lg mb-8">
+            <h1 className="text-2xl font-semibold mb-2">Redirecting...</h1>
+            <p>Please wait while we redirect you to the appropriate dashboard.</p>
+          </div>
+          <div className="space-y-4">
+            <Button asChild size="lg" className="w-full">
+              <Link to="/worker-dashboard">Worker Dashboard</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="w-full">
+              <Link to="/employer-dashboard">Employer Dashboard</Link>
+            </Button>
+          </div>
         </div>
-        <ProjectDashboard />
       </main>
       <Footer />
     </div>

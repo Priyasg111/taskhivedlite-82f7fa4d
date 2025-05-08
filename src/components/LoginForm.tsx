@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -68,20 +67,24 @@ const LoginForm = () => {
           // Prioritize user_type, fall back to role if needed
           const userType = profileData.user_type || profileData.role;
           
-          // If returnPath is dashboard, we should route based on role
-          if (returnPath === '/dashboard') {
-            if (userType === 'worker') {
-              navigate('/task-room');
-              return;
-            } else if (userType === 'employer' || userType === 'client') {
-              navigate('/employer-console');
-              return;
-            }
+          // If returnPath is specified, prioritize that
+          if (returnPath && returnPath !== '/dashboard') {
+            navigate(returnPath);
+            return;
+          }
+          
+          // Otherwise route based on role
+          if (userType === 'worker') {
+            navigate('/worker-dashboard');
+            return;
+          } else if (userType === 'employer' || userType === 'client') {
+            navigate('/employer-dashboard');
+            return;
           }
         }
         
-        // Navigate to the saved return path if we haven't redirected elsewhere
-        navigate(returnPath);
+        // Fallback to dashboard if no specific routing applied
+        navigate('/dashboard');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Invalid email or password";

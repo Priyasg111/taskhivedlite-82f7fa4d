@@ -22,6 +22,7 @@ import NotFound from "@/pages/NotFound";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { ClientOnlyRoute } from "./ClientOnlyRoute";
 import { WorkerOnlyRoute } from "./WorkerOnlyRoute";
+import { EmployerOnlyRoute } from "./EmployerOnlyRoute";
 
 // Define the routes configuration
 export const routes: RouteObject[] = [
@@ -79,15 +80,15 @@ export const routes: RouteObject[] = [
   },
   {
     path: "/worker-dashboard",
-    element: <ProtectedRoute><WorkerDashboard /></ProtectedRoute>
+    element: <WorkerOnlyRoute><WorkerDashboard /></WorkerOnlyRoute>
   },
   {
     path: "/employer-dashboard",
-    element: <ProtectedRoute><EmployerDashboard /></ProtectedRoute>
+    element: <EmployerOnlyRoute><EmployerDashboard /></EmployerOnlyRoute>
   },
   {
     path: "/employer-console",
-    element: <ProtectedRoute><EmployerConsole /></ProtectedRoute>
+    element: <EmployerOnlyRoute><EmployerConsole /></EmployerOnlyRoute>
   },
   {
     path: "/task-room",
