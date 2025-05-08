@@ -112,6 +112,7 @@ serve(async (req) => {
       metadata: {
         userId: user.id,
         credits: credits.toString(),
+        userRole: userType,
       },
     });
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Wallet, DollarSign, ArrowUp, CheckCircle, History } from "lucide-react";
+import { Transaction } from "@/types/transaction";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 
 const WorkerPayments = () => {
   const { user } = useAuth();
@@ -22,6 +30,7 @@ const WorkerPayments = () => {
   const [walletType, setWalletType] = useState("crypto");
   const [cryptoToken, setCryptoToken] = useState("USDC");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   
   // Fetch worker payment details
@@ -75,9 +84,18 @@ const WorkerPayments = () => {
         const totalPending = pendingTasks?.reduce((sum, task) => sum + (parseFloat(task.payment.toString()) || 0), 0) || 0;
         setPendingEarnings(totalPending);
         
-        // Fetch payment history
-        // In a real app, this would come from a separate withdrawals or transactions table
-        // For this demo, we'll simulate with tasks data
+        // Fetch transaction history
+        const { data: transactionsData, error: transactionsError } = await supabase
+          .from('transactions')
+          .select('*')
+          .or(`user_id.eq.${user.id},recipient_id.eq.${user.id}`)
+          .order('created_at', { ascending: false });
+          
+        if (transactionsError) throw transactionsError;
+        
+        setTransactions(transactionsData || []);
+        
+        // For backward compatibility, keep task payment history too
         const { data: historyData, error: historyError } = await supabase
           .from('tasks')
           .select('*')
@@ -170,11 +188,38 @@ const WorkerPayments = () => {
     setIsProcessing(true);
     
     try {
-      // In a real app, this would initiate a withdrawal to the blockchain
-      // For demo purposes, we'll just show a success message
+      const amount = parseFloat(withdrawalAmount);
       
-      // Wait for a simulated processing time
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Record the transaction in the database
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          amount: amount,
+          type: 'withdrawal',
+          status: 'completed',
+          role: 'worker',
+          description: `Withdrawal to ${walletType} wallet`,
+          payment_method: walletType,
+          metadata: { 
+            token: cryptoToken,
+            wallet_address: walletAddress
+          }
+        });
+        
+      if (transactionError) throw transactionError;
+      
+      // Refresh the transaction list
+      const { data: updatedTransactions, error: fetchError } = await supabase
+        .from('transactions')
+        .select('*')
+        .or(`user_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+        
+      if (fetchError) throw fetchError;
+      
+      setTransactions(updatedTransactions || []);
+      setAvailableBalance(availableBalance - amount);
       
       toast({
         title: "Withdrawal Initiated",
@@ -204,6 +249,20 @@ const WorkerPayments = () => {
       hour: "2-digit",
       minute: "2-digit"
     });
+  };
+  
+  // Get transaction type display value
+  const getTransactionTypeDisplay = (type: string) => {
+    switch (type) {
+      case 'deposit':
+        return 'Deposit';
+      case 'payment':
+        return 'Task Payment';
+      case 'withdrawal':
+        return 'Withdrawal';
+      default:
+        return type.charAt(0).toUpperCase() + type.slice(1);
+    }
   };
 
   return (
@@ -344,32 +403,57 @@ const WorkerPayments = () => {
         <TabsContent value="payouts">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>Payment History</CardTitle>
+              <CardTitle>Transaction History</CardTitle>
             </CardHeader>
             <CardContent>
-              {paymentHistory.length > 0 ? (
-                <div className="space-y-4">
-                  {paymentHistory.map((payment) => (
-                    <div 
-                      key={payment.id}
-                      className="flex items-center justify-between p-3 border-b last:border-0"
-                    >
-                      <div>
-                        <div className="font-medium">{payment.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          Paid on {formatDate(payment.updated_at)}
-                        </div>
-                      </div>
-                      <div className="font-medium text-green-600">
-                        +${payment.payment?.toFixed(2) || '0.00'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {transactions.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell className="font-medium">
+                          {getTransactionTypeDisplay(transaction.type)}
+                        </TableCell>
+                        <TableCell className={`font-medium ${
+                          transaction.type === 'payment' && transaction.recipient_id === user?.id
+                            ? 'text-green-600'
+                            : transaction.type === 'withdrawal'
+                              ? 'text-amber-600'
+                              : 'text-blue-600'
+                        }`}>
+                          {transaction.type === 'payment' && transaction.recipient_id === user?.id ? '+' : '-'}
+                          {transaction.amount.toFixed(2)} {transaction.currency || 'USD'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {formatDate(transaction.created_at)}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            transaction.status === 'completed' 
+                              ? 'bg-green-100 text-green-800' 
+                              : transaction.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="text-center py-8">
                   <History className="mx-auto h-12 w-12 text-muted-foreground/50 mb-3" />
-                  <p className="text-muted-foreground">No payment history</p>
+                  <p className="text-muted-foreground">No transaction history</p>
                 </div>
               )}
             </CardContent>

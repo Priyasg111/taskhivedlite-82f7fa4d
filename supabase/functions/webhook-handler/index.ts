@@ -102,12 +102,18 @@ serve(async (req) => {
           .from("transactions")
           .insert({
             user_id: userId,
+            role: "employer",
             amount: session.amount_total ? session.amount_total / 100 : 0,
-            credits: credits,
-            type: "purchase",
+            currency: session.currency ? session.currency.toUpperCase() : "USD",
+            type: "deposit",
             status: "completed",
-            payment_processor: "stripe",
-            payment_id: session.id,
+            payment_method: "stripe",
+            description: "Added credits via Stripe",
+            metadata: {
+              credits: credits,
+              stripe_session_id: session.id,
+              stripe_payment_intent: session.payment_intent
+            }
           });
           
         if (transactionError) {

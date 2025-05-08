@@ -9,6 +9,14 @@ import { useAuth } from "@/context/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, CreditCard, History, Wallet, ArrowDown } from "lucide-react";
 import { Transaction } from "@/types/transaction";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 
 const EmployerPayments = () => {
   const { user } = useAuth();
@@ -36,9 +44,16 @@ const EmployerPayments = () => {
         
         setCredits(profileData?.credits || 0);
         
-        // Note: This would require a transactions table in the database
-        // For now, we'll just use an empty array since the table doesn't exist yet
-        setTransactions([]);
+        // Fetch transaction history
+        const { data: transactionsData, error: transactionsError } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+          
+        if (transactionsError) throw transactionsError;
+        
+        setTransactions(transactionsData || []);
         
         // Fetch pending payments (tasks with 'verified' status but 'pending' payment)
         const { data: pendingTasksData, error: pendingTasksError } = await supabase
@@ -104,7 +119,7 @@ const EmployerPayments = () => {
   };
   
   // Handle paying a worker for a completed task
-  const handlePayWorker = async (taskId: string) => {
+  const handlePayWorker = async (taskId: string, workerId: string, payment: number) => {
     setIsProcessing(true);
     
     try {
@@ -116,17 +131,53 @@ const EmployerPayments = () => {
         
       if (updateError) throw updateError;
       
-      // Refresh pending payments list
+      // Record the transaction
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user?.id,
+          recipient_id: workerId,
+          amount: payment,
+          type: 'payment',
+          status: 'completed',
+          role: 'employer',
+          description: `Payment for task: ${taskId}`,
+          payment_method: 'credits'
+        });
+        
+      if (transactionError) throw transactionError;
+      
+      // Update user's credit balance
+      const { error: creditError } = await supabase
+        .from('user_profiles')
+        .update({ credits: credits - payment })
+        .eq('id', user?.id);
+        
+      if (creditError) throw creditError;
+      
+      // Refresh pending payments list and user credits
       const { data: updatedTasks, error: fetchError } = await supabase
         .from('tasks')
         .select('*, worker:worker_id(email)')
-        .eq('client_id', user.id)
+        .eq('client_id', user?.id)
         .eq('status', 'verified')
         .eq('payment_status', 'pending');
         
       if (fetchError) throw fetchError;
       
       setPendingPayments(updatedTasks || []);
+      setCredits(credits - payment);
+      
+      // Refresh transaction list
+      const { data: updatedTransactions, error: transactionsError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+        
+      if (transactionsError) throw transactionsError;
+      
+      setTransactions(updatedTransactions || []);
       
       toast({
         title: "Payment Successful",
@@ -154,6 +205,20 @@ const EmployerPayments = () => {
       hour: "2-digit",
       minute: "2-digit"
     });
+  };
+
+  // Get transaction type display value
+  const getTransactionTypeDisplay = (type: string) => {
+    switch (type) {
+      case 'deposit':
+        return 'Added Credits';
+      case 'payment':
+        return 'Task Payment';
+      case 'withdrawal':
+        return 'Withdrawal';
+      default:
+        return type.charAt(0).toUpperCase() + type.slice(1);
+    }
   };
 
   return (
@@ -238,7 +303,7 @@ const EmployerPayments = () => {
                         <div className="font-semibold">${task.payment.toFixed(2)}</div>
                         <Button
                           size="sm"
-                          onClick={() => handlePayWorker(task.id)}
+                          onClick={() => handlePayWorker(task.id, task.worker_id, task.payment)}
                           disabled={isProcessing || credits < task.payment}
                         >
                           Pay Now
@@ -265,29 +330,45 @@ const EmployerPayments = () => {
             </CardHeader>
             <CardContent>
               {transactions.length > 0 ? (
-                <div className="space-y-4">
-                  {transactions.map((transaction) => (
-                    <div 
-                      key={transaction.id}
-                      className="flex items-center justify-between p-3 border-b last:border-0"
-                    >
-                      <div>
-                        <div className="font-medium">
-                          {transaction.type === 'purchase' ? 'Added Credits' : 'Task Payment'}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell className="font-medium">
+                          {getTransactionTypeDisplay(transaction.type)}
+                        </TableCell>
+                        <TableCell className={`font-medium ${
+                          transaction.type === 'deposit' ? 'text-green-600' : 'text-blue-600'
+                        }`}>
+                          {transaction.type === 'deposit' ? '+' : '-'}
+                          {transaction.amount.toFixed(2)} {transaction.currency || 'USD'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {formatDate(transaction.created_at)}
-                        </div>
-                      </div>
-                      <div className={`font-medium ${
-                        transaction.type === 'purchase' ? 'text-green-600' : 'text-blue-600'
-                      }`}>
-                        {transaction.type === 'purchase' ? '+' : '-'}
-                        {transaction.amount?.toFixed(2) || '0.00'} USD
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            transaction.status === 'completed' 
+                              ? 'bg-green-100 text-green-800' 
+                              : transaction.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="text-center py-8">
                   <History className="mx-auto h-12 w-12 text-muted-foreground/50 mb-3" />
