@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +58,10 @@ const Dashboard = () => {
               variant: "destructive"
             });
             navigate("/task-room");
+          }
+          // Redirect employers to the employer console
+          else if (userType === 'employer' || userType === 'client') {
+            navigate("/employer-console");
           }
         } else {
           // No profile found, redirect to unauthorized

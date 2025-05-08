@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import NavBar from "@/components/NavBar";
 import LoginForm from "@/components/LoginForm";
 import { useAuth } from "@/context/auth";
@@ -9,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 const Login = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
   const [isCheckingRole, setIsCheckingRole] = useState(true);
   
   // Redirect if already logged in based on role
@@ -26,6 +27,13 @@ const Login = () => {
             // Prioritize user_type field, fall back to role if needed
             const userType = profileData.user_type || profileData.role;
             
+            // If returnTo parameter exists, use that for redirection
+            if (returnTo) {
+              navigate(returnTo);
+              return;
+            }
+            
+            // Otherwise redirect based on user type
             if (userType === 'worker') {
               navigate("/task-room");
             } else if (userType === 'employer' || userType === 'client') {
@@ -48,7 +56,7 @@ const Login = () => {
     };
     
     checkUserRole();
-  }, [user, navigate]);
+  }, [user, navigate, returnTo]);
 
   // Show loading while checking role
   if (user && isCheckingRole) {
