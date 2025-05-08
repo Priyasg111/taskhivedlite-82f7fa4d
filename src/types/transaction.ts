@@ -4,8 +4,8 @@ export interface Transaction {
   user_id: string;
   amount: number;
   credits?: number;
-  type: 'deposit' | 'payment' | 'withdrawal';
-  status: 'pending' | 'completed' | 'failed';
+  type: string; // Changed from strict union type to string to match database return type
+  status: string; // Changed from strict union type to string
   payment_processor?: string;
   payment_id?: string;
   created_at: string;

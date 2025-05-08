@@ -93,7 +93,7 @@ const WorkerPayments = () => {
           
         if (transactionsError) throw transactionsError;
         
-        setTransactions(transactionsData || []);
+        setTransactions(transactionsData as Transaction[] || []);
         
         // For backward compatibility, keep task payment history too
         const { data: historyData, error: historyError } = await supabase
@@ -218,7 +218,7 @@ const WorkerPayments = () => {
         
       if (fetchError) throw fetchError;
       
-      setTransactions(updatedTransactions || []);
+      setTransactions(updatedTransactions as Transaction[] || []);
       setAvailableBalance(availableBalance - amount);
       
       toast({

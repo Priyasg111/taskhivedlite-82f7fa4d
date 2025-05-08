@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,7 +52,7 @@ const EmployerPayments = () => {
           
         if (transactionsError) throw transactionsError;
         
-        setTransactions(transactionsData || []);
+        setTransactions(transactionsData as Transaction[] || []);
         
         // Fetch pending payments (tasks with 'verified' status but 'pending' payment)
         const { data: pendingTasksData, error: pendingTasksError } = await supabase
@@ -177,7 +176,7 @@ const EmployerPayments = () => {
         
       if (transactionsError) throw transactionsError;
       
-      setTransactions(updatedTransactions || []);
+      setTransactions(updatedTransactions as Transaction[] || []);
       
       toast({
         title: "Payment Successful",
