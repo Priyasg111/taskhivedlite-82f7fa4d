@@ -59,7 +59,7 @@ const Index = () => {
               Complete Tasks, Earn Rewards - <span className="text-yellow-500">Verified by AI</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Join TaskHive to work on microtasks from anywhere. Our AI system verifies your work, ensuring fair payment for quality results.
+              Join TaskHived to work on microtasks from anywhere. Our AI system verifies your work, ensuring fair payment for quality results.
             </p>
             <div className="flex justify-center gap-4">
               <Button size="lg" asChild className="bg-yellow-500 hover:bg-yellow-600 text-black">
@@ -124,7 +124,7 @@ const Index = () => {
       <footer className="border-t py-6">
         <div className="container flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            © 2025 TaskHive - AI-Verified Microtask Marketplace
+            © 2025 TaskHived - AI-Verified Microtask Marketplace
           </div>
           <div className="flex gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
