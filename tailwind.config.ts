@@ -65,7 +65,8 @@ export default {
 				brand: {
 					black: '#1A1A1A',    // Dark black from logo
 					yellow: '#F6C549',   // Exact yellow from logo
-					white: '#FFFFFF'     // White for contrast
+					white: '#FFFFFF',    // White for contrast
+					blue: '#3B82F6'      // Blue for messaging
 				},
 				yellow: {
 					50: '#FFFDF5',   // Lightest yellow, very soft
