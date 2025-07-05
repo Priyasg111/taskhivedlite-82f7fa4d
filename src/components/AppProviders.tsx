@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/auth";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import SecurityMonitor from "@/components/security/SecurityMonitor";
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
       <BrowserRouter>
         <AuthProvider>
           <TooltipProvider>
+            <SecurityMonitor />
             <Toaster />
             <Sonner />
             {children}

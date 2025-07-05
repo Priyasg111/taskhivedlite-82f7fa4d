@@ -1,5 +1,33 @@
 
 project_id = "ezyngxcqvmuljfkmgjgs"
 
+# Enable JWT verification for all sensitive functions
+[functions.check-verification]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.send-reset-email]
+verify_jwt = false  # No auth needed for password reset
+
+[functions.send-welcome-email]
+verify_jwt = false  # System function
+
+[functions.submit-completed-task]
+verify_jwt = true
+
 [functions.update-app-name]
 verify_jwt = true
+
+[functions.verify-identity]
+verify_jwt = true
+
+[functions.verify-task]
+verify_jwt = true
+
+[functions.webhook-handler]
+verify_jwt = false  # External webhook
+
+[functions.get-timestamp]
+verify_jwt = false  # Public health check

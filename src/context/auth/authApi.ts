@@ -5,15 +5,33 @@ import { formatUserWithMetadata } from '@/utils/authUtils';
 import { toast } from '@/hooks/use-toast';
 
 /**
- * Logs in a user with email and password
+ * Logs in a user with email and password with enhanced security
  */
 export const loginUser = async (email: string, password: string) => {
+  const { checkAccountLockout, recordFailedLogin, logSecurityEvent } = await import('@/utils/securityUtils');
+  
+  // Check if account is locked due to failed attempts
+  const lockoutStatus = await checkAccountLockout(email);
+  if (lockoutStatus.locked) {
+    await logSecurityEvent(null, 'blocked_login_attempt', 'medium', `Login blocked for ${email} due to too many failed attempts`);
+    throw new Error(`Account temporarily locked. Please try again later.`);
+  }
+  
   const { error, data } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
   
-  if (error) throw error;
+  if (error) {
+    // Record failed login attempt
+    await recordFailedLogin(email);
+    await logSecurityEvent(null, 'failed_login', 'low', `Failed login attempt for ${email}`);
+    throw error;
+  }
+  
+  // Log successful login
+  await logSecurityEvent(data.user?.id || null, 'successful_login', 'low', `Successful login for ${email}`);
+  
   return data;
 };
 
@@ -43,9 +61,28 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 };
 
 /**
- * Signs up a new user
+ * Signs up a new user with enhanced security validation
  */
 export const signupUser = async (name: string, email: string, password: string, role: string = 'worker', userType: string = 'worker'): Promise<CustomUser | null> => {
+  const { validateAndSanitizeInput, userInputSchema, checkRateLimit, logSecurityEvent } = await import('@/utils/securityUtils');
+  
+  // Rate limit signup attempts
+  const canProceed = await checkRateLimit(null, 'signup', 3, 60);
+  if (!canProceed) {
+    await logSecurityEvent(null, 'rate_limit_exceeded', 'medium', 'Signup rate limit exceeded');
+    throw new Error('Too many signup attempts. Please try again later.');
+  }
+  
+  // Validate and sanitize input
+  try {
+    const sanitizedData = validateAndSanitizeInput({ name, email, password }, userInputSchema);
+    name = sanitizedData.name;
+    email = sanitizedData.email;
+    password = sanitizedData.password;
+  } catch (validationError) {
+    await logSecurityEvent(null, 'invalid_signup_data', 'low', 'Invalid signup data provided');
+    throw new Error('Invalid input data provided');
+  }
   // First check if the email already exists
   const emailExists = await checkEmailExists(email);
   

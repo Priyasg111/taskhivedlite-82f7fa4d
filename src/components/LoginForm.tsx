@@ -37,7 +37,7 @@ const LoginForm = () => {
   // Get any message from the location state
   const message = location.state?.message;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     
@@ -47,6 +47,24 @@ const LoginForm = () => {
     }
 
     try {
+      // Import security utilities
+      const { emailSchema, checkAccountLockout } = await import('@/utils/securityUtils');
+      
+      // Validate email format
+      try {
+        emailSchema.parse(email);
+      } catch {
+        setError("Please enter a valid email address");
+        return;
+      }
+      
+      // Check account lockout status
+      const lockoutStatus = await checkAccountLockout(email);
+      if (lockoutStatus.locked) {
+        setError("Account temporarily locked due to too many failed login attempts. Please try again later.");
+        return;
+      }
+      
       await login(email, password);
       
       // Get user type from database to determine redirection
