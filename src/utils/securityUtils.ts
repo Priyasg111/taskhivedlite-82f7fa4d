@@ -46,8 +46,7 @@ export const validateAndSanitizeInput = (data: any, schema: z.ZodSchema) => {
   return schema.parse(sanitized);
 };
 
-// Simple rate limiting using localStorage for client-side tracking
-// Note: In production, this should be server-side with database tracking
+// Server-side rate limiting using database tracking
 export const checkRateLimit = async (
   userId: string | null,
   actionType: string,
@@ -55,37 +54,29 @@ export const checkRateLimit = async (
   windowMinutes: number = 60
 ): Promise<boolean> => {
   try {
-    const key = `rate_limit_${actionType}_${userId || 'anonymous'}`;
-    const stored = localStorage.getItem(key);
-    const now = Date.now();
-    const windowMs = windowMinutes * 60 * 1000;
+    const { supabase } = await import('@/integrations/supabase/client');
     
-    if (stored) {
-      const data = JSON.parse(stored);
-      const timeSinceStart = now - data.startTime;
-      
-      if (timeSinceStart < windowMs) {
-        if (data.count >= maxRequests) {
-          return false;
-        }
-        data.count++;
-        localStorage.setItem(key, JSON.stringify(data));
-      } else {
-        // Reset window
-        localStorage.setItem(key, JSON.stringify({ startTime: now, count: 1 }));
-      }
-    } else {
-      localStorage.setItem(key, JSON.stringify({ startTime: now, count: 1 }));
+    const { data, error } = await supabase.functions.invoke('check-rate-limit', {
+      body: JSON.stringify({
+        action_type: actionType,
+        max_requests: maxRequests,
+        window_minutes: windowMinutes
+      })
+    });
+
+    if (error) {
+      console.error('Rate limit check error:', error);
+      return true; // Fail open on error
     }
-    
-    return true;
+
+    return data?.allowed || false;
   } catch (error) {
     console.error('Rate limit check error:', error);
-    return true; // Fail open for client-side rate limiting
+    return true; // Fail open for safety
   }
 };
 
-// Log security event - simplified version that works with existing database
+// Server-side security event logging with database persistence
 export const logSecurityEvent = async (
   userId: string | null,
   eventType: string,
@@ -94,91 +85,106 @@ export const logSecurityEvent = async (
   metadata?: any
 ): Promise<void> => {
   try {
-    // Log to console for development - in production would log to database
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    // Log to console for immediate visibility
     console.log(`[SECURITY ${severity.toUpperCase()}] ${eventType}: ${description}`, {
       userId,
       metadata,
       timestamp: new Date().toISOString()
     });
     
-    // Store in localStorage for client-side tracking
-    const securityLog = {
-      userId,
-      eventType,
-      severity,
-      description,
-      metadata,
-      timestamp: new Date().toISOString()
-    };
-    
-    const existingLogs = JSON.parse(localStorage.getItem('security_events') || '[]');
-    existingLogs.push(securityLog);
-    
-    // Keep only last 100 events
-    if (existingLogs.length > 100) {
-      existingLogs.splice(0, existingLogs.length - 100);
+    // Log to database for persistence
+    const { error } = await supabase.functions.invoke('log-security-event', {
+      body: JSON.stringify({
+        user_id: userId,
+        event_type: eventType,
+        severity,
+        description,
+        metadata
+      })
+    });
+
+    if (error) {
+      console.error('Failed to log security event to database:', error);
+      // Fallback to localStorage as backup
+      const securityLog = {
+        userId,
+        eventType,
+        severity,
+        description,
+        metadata,
+        timestamp: new Date().toISOString()
+      };
+      
+      const existingLogs = JSON.parse(localStorage.getItem('security_events_backup') || '[]');
+      existingLogs.push(securityLog);
+      
+      // Keep only last 50 events as backup
+      if (existingLogs.length > 50) {
+        existingLogs.splice(0, existingLogs.length - 50);
+      }
+      
+      localStorage.setItem('security_events_backup', JSON.stringify(existingLogs));
     }
-    
-    localStorage.setItem('security_events', JSON.stringify(existingLogs));
   } catch (error) {
     console.error('Failed to log security event:', error);
   }
 };
 
-// Check account lockout status - simplified version
+// Server-side account lockout check using database
 export const checkAccountLockout = async (email: string): Promise<{
   locked: boolean;
   lockoutUntil?: string;
   failedAttempts: number;
 }> => {
   try {
-    const key = `failed_attempts_${email}`;
-    const stored = localStorage.getItem(key);
-    const now = Date.now();
+    const { supabase } = await import('@/integrations/supabase/client');
     
-    if (stored) {
-      const data = JSON.parse(stored);
-      const timeSinceLastAttempt = now - data.lastAttempt;
-      
-      // Reset after 1 hour
-      if (timeSinceLastAttempt > 60 * 60 * 1000) {
-        localStorage.removeItem(key);
-        return { locked: false, failedAttempts: 0 };
-      }
-      
-      // Lock after 5 failed attempts within 15 minutes
-      if (data.count >= 5 && timeSinceLastAttempt < 15 * 60 * 1000) {
-        return {
-          locked: true,
-          lockoutUntil: new Date(data.lastAttempt + 30 * 60 * 1000).toISOString(),
-          failedAttempts: data.count
-        };
-      }
-      
-      return { locked: false, failedAttempts: data.count };
+    const { data, error } = await supabase.functions.invoke('check-account-lockout', {
+      body: JSON.stringify({ email })
+    });
+
+    if (error) {
+      console.error('Account lockout check error:', error);
+      return { locked: false, failedAttempts: 0 };
     }
-    
-    return { locked: false, failedAttempts: 0 };
+
+    return {
+      locked: data?.locked || false,
+      lockoutUntil: data?.lockout_until,
+      failedAttempts: data?.failed_attempts || 0
+    };
   } catch (error) {
     console.error('Account lockout check error:', error);
     return { locked: false, failedAttempts: 0 };
   }
 };
 
-// Record failed login attempt - simplified version
+// Server-side failed login attempt recording with database persistence
 export const recordFailedLogin = async (email: string): Promise<void> => {
   try {
-    const key = `failed_attempts_${email}`;
-    const stored = localStorage.getItem(key);
-    const now = Date.now();
+    const { supabase } = await import('@/integrations/supabase/client');
     
-    if (stored) {
-      const data = JSON.parse(stored);
-      data.count++;
-      data.lastAttempt = now;
-      localStorage.setItem(key, JSON.stringify(data));
-    } else {
-      localStorage.setItem(key, JSON.stringify({ count: 1, lastAttempt: now }));
+    const { error } = await supabase.functions.invoke('record-failed-login', {
+      body: JSON.stringify({ email })
+    });
+
+    if (error) {
+      console.error('Failed to record login attempt:', error);
+      // Fallback to localStorage as backup
+      const key = `failed_attempts_backup_${email}`;
+      const stored = localStorage.getItem(key);
+      const now = Date.now();
+      
+      if (stored) {
+        const data = JSON.parse(stored);
+        data.count++;
+        data.lastAttempt = now;
+        localStorage.setItem(key, JSON.stringify(data));
+      } else {
+        localStorage.setItem(key, JSON.stringify({ count: 1, lastAttempt: now }));
+      }
     }
   } catch (error) {
     console.error('Failed to record login attempt:', error);

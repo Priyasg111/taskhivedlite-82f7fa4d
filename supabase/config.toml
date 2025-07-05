@@ -31,3 +31,15 @@ verify_jwt = false  # External webhook
 
 [functions.get-timestamp]
 verify_jwt = false  # Public health check
+
+[functions.log-security-event]
+verify_jwt = true
+
+[functions.check-rate-limit]
+verify_jwt = true
+
+[functions.check-account-lockout]
+verify_jwt = false  # Needs to work before login
+
+[functions.record-failed-login]
+verify_jwt = false  # Needs to work for failed logins
