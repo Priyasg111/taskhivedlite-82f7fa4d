@@ -36,9 +36,17 @@ export const sanitizeInput = (input: string): string => {
 
 // Validate and sanitize user input
 export const validateAndSanitizeInput = (data: any, schema: z.ZodSchema) => {
-  // First sanitize string inputs
+  // Sanitize only specific fields, preserve passwords as-is
   const sanitized = Object.keys(data).reduce((acc, key) => {
-    acc[key] = typeof data[key] === 'string' ? sanitizeInput(data[key]) : data[key];
+    if (key === 'password') {
+      // Don't sanitize passwords - they need special characters
+      acc[key] = data[key];
+    } else if (typeof data[key] === 'string') {
+      // Only sanitize name and email fields
+      acc[key] = sanitizeInput(data[key]);
+    } else {
+      acc[key] = data[key];
+    }
     return acc;
   }, {} as any);
   

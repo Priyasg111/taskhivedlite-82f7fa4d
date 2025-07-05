@@ -2,9 +2,18 @@
 import { z } from "zod";
 
 export const signupSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  name: z.string()
+    .min(2, { message: "Name must be at least 2 characters" })
+    .max(50, { message: "Name must be less than 50 characters" })
+    .regex(/^[a-zA-Z\s\-']+$/, { 
+      message: "Name can only contain letters, spaces, hyphens, and apostrophes" 
+    }),
   email: z.string().email({ message: "Please enter a valid email" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, {
+      message: "Password must contain uppercase letter, lowercase letter, number, and special character (@$!%*?&)"
+    }),
   dateOfBirth: z.string().refine((date) => {
     if (!date) return false;
     
