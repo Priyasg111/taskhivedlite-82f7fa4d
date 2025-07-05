@@ -4,10 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from "./admin/TaskList";
 import AdminDataProvider from "./admin/AdminDataProvider";
 import SecurityDashboard from "./admin/SecurityDashboard";
+import SecurityAlert from "./security/SecurityAlert";
 
 const AdminPanel = () => {
   return (
     <div className="space-y-6">
+      <SecurityAlert />
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
           <TabsTrigger value="tasks">Task Management</TabsTrigger>

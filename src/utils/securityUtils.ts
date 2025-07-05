@@ -46,7 +46,7 @@ export const validateAndSanitizeInput = (data: any, schema: z.ZodSchema) => {
   return schema.parse(sanitized);
 };
 
-// Server-side rate limiting using database tracking
+// Server-side rate limiting using database tracking with fallback
 export const checkRateLimit = async (
   userId: string | null,
   actionType: string,
@@ -65,18 +65,41 @@ export const checkRateLimit = async (
     });
 
     if (error) {
-      console.error('Rate limit check error:', error);
-      return true; // Fail open on error
+      console.warn('Rate limit check failed, using client fallback:', error);
+      return clientSideRateLimit(actionType, maxRequests, windowMinutes);
     }
 
     return data?.allowed || false;
   } catch (error) {
-    console.error('Rate limit check error:', error);
-    return true; // Fail open for safety
+    console.warn('Rate limit check error, using client fallback:', error);
+    return clientSideRateLimit(actionType, maxRequests, windowMinutes);
   }
 };
 
-// Server-side security event logging with database persistence
+// Client-side fallback rate limiting (temporary until database is set up)
+const clientSideRateLimit = (actionType: string, maxRequests: number, windowMinutes: number): boolean => {
+  const key = `rate_limit_${actionType}`;
+  const now = Date.now();
+  const windowMs = windowMinutes * 60 * 1000;
+  
+  const stored = localStorage.getItem(key);
+  let attempts = stored ? JSON.parse(stored) : [];
+  
+  // Remove old attempts outside the window
+  attempts = attempts.filter((timestamp: number) => now - timestamp < windowMs);
+  
+  if (attempts.length >= maxRequests) {
+    return false; // Rate limited
+  }
+  
+  // Add current attempt
+  attempts.push(now);
+  localStorage.setItem(key, JSON.stringify(attempts));
+  
+  return true; // Allowed
+};
+
+// Server-side security event logging with database persistence and enhanced fallback
 export const logSecurityEvent = async (
   userId: string | null,
   eventType: string,
@@ -84,17 +107,19 @@ export const logSecurityEvent = async (
   description: string,
   metadata?: any
 ): Promise<void> => {
+  const timestamp = new Date().toISOString();
+  
+  // Always log to console for immediate visibility
+  console.log(`[SECURITY ${severity.toUpperCase()}] ${eventType}: ${description}`, {
+    userId,
+    metadata,
+    timestamp
+  });
+  
   try {
     const { supabase } = await import('@/integrations/supabase/client');
     
-    // Log to console for immediate visibility
-    console.log(`[SECURITY ${severity.toUpperCase()}] ${eventType}: ${description}`, {
-      userId,
-      metadata,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Log to database for persistence
+    // Try to log to database first
     const { error } = await supabase.functions.invoke('log-security-event', {
       body: JSON.stringify({
         user_id: userId,
@@ -106,33 +131,47 @@ export const logSecurityEvent = async (
     });
 
     if (error) {
-      console.error('Failed to log security event to database:', error);
-      // Fallback to localStorage as backup
+      console.warn('Database security logging failed, using local fallback:', error);
+      throw error; // Force fallback
+    }
+  } catch (error) {
+    // Enhanced fallback to localStorage with structured format
+    try {
       const securityLog = {
+        id: crypto.randomUUID(),
         userId,
         eventType,
         severity,
         description,
         metadata,
-        timestamp: new Date().toISOString()
+        timestamp,
+        source: 'client_fallback'
       };
       
       const existingLogs = JSON.parse(localStorage.getItem('security_events_backup') || '[]');
       existingLogs.push(securityLog);
       
-      // Keep only last 50 events as backup
-      if (existingLogs.length > 50) {
-        existingLogs.splice(0, existingLogs.length - 50);
+      // Keep only last 100 events and clean old ones
+      existingLogs.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      if (existingLogs.length > 100) {
+        existingLogs.splice(100);
       }
       
       localStorage.setItem('security_events_backup', JSON.stringify(existingLogs));
+      
+      // For critical events, also store separately for immediate attention
+      if (severity === 'critical') {
+        const criticalEvents = JSON.parse(localStorage.getItem('critical_security_events') || '[]');
+        criticalEvents.push(securityLog);
+        localStorage.setItem('critical_security_events', JSON.stringify(criticalEvents));
+      }
+    } catch (fallbackError) {
+      console.error('Security event logging completely failed:', fallbackError);
     }
-  } catch (error) {
-    console.error('Failed to log security event:', error);
   }
 };
 
-// Server-side account lockout check using database
+// Server-side account lockout check using database with client fallback
 export const checkAccountLockout = async (email: string): Promise<{
   locked: boolean;
   lockoutUntil?: string;
@@ -146,8 +185,8 @@ export const checkAccountLockout = async (email: string): Promise<{
     });
 
     if (error) {
-      console.error('Account lockout check error:', error);
-      return { locked: false, failedAttempts: 0 };
+      console.warn('Database lockout check failed, using client fallback:', error);
+      return clientSideLockoutCheck(email);
     }
 
     return {
@@ -156,12 +195,44 @@ export const checkAccountLockout = async (email: string): Promise<{
       failedAttempts: data?.failed_attempts || 0
     };
   } catch (error) {
-    console.error('Account lockout check error:', error);
-    return { locked: false, failedAttempts: 0 };
+    console.warn('Account lockout check error, using client fallback:', error);
+    return clientSideLockoutCheck(email);
   }
 };
 
-// Server-side failed login attempt recording with database persistence
+// Client-side fallback for account lockout (temporary until database is set up)
+const clientSideLockoutCheck = (email: string): { locked: boolean; lockoutUntil?: string; failedAttempts: number } => {
+  const key = `failed_attempts_${email}`;
+  const stored = localStorage.getItem(key);
+  
+  if (!stored) {
+    return { locked: false, failedAttempts: 0 };
+  }
+  
+  const data = JSON.parse(stored);
+  const now = Date.now();
+  const fifteenMinutes = 15 * 60 * 1000;
+  
+  // Reset if more than 1 hour has passed
+  if (now - data.lastAttempt > 60 * 60 * 1000) {
+    localStorage.removeItem(key);
+    return { locked: false, failedAttempts: 0 };
+  }
+  
+  // Check if locked (5+ attempts in 15 minutes)
+  if (data.count >= 5 && (now - data.lastAttempt) < fifteenMinutes) {
+    const lockoutUntil = new Date(data.lastAttempt + 30 * 60 * 1000).toISOString();
+    return { 
+      locked: true, 
+      lockoutUntil,
+      failedAttempts: data.count 
+    };
+  }
+  
+  return { locked: false, failedAttempts: data.count };
+};
+
+// Server-side failed login attempt recording with database persistence and enhanced fallback
 export const recordFailedLogin = async (email: string): Promise<void> => {
   try {
     const { supabase } = await import('@/integrations/supabase/client');
@@ -171,23 +242,38 @@ export const recordFailedLogin = async (email: string): Promise<void> => {
     });
 
     if (error) {
-      console.error('Failed to record login attempt:', error);
-      // Fallback to localStorage as backup
-      const key = `failed_attempts_backup_${email}`;
-      const stored = localStorage.getItem(key);
-      const now = Date.now();
-      
-      if (stored) {
-        const data = JSON.parse(stored);
-        data.count++;
-        data.lastAttempt = now;
-        localStorage.setItem(key, JSON.stringify(data));
-      } else {
-        localStorage.setItem(key, JSON.stringify({ count: 1, lastAttempt: now }));
-      }
+      console.warn('Database failed login recording failed, using client fallback:', error);
+      throw error; // Force fallback
     }
   } catch (error) {
-    console.error('Failed to record login attempt:', error);
+    // Enhanced client-side fallback with better data structure
+    const key = `failed_attempts_${email}`;
+    const stored = localStorage.getItem(key);
+    const now = Date.now();
+    
+    if (stored) {
+      const data = JSON.parse(stored);
+      data.count++;
+      data.lastAttempt = now;
+      data.attempts.push(now);
+      
+      // Keep only last 10 attempts
+      if (data.attempts.length > 10) {
+        data.attempts = data.attempts.slice(-10);
+      }
+      
+      localStorage.setItem(key, JSON.stringify(data));
+    } else {
+      localStorage.setItem(key, JSON.stringify({ 
+        count: 1, 
+        lastAttempt: now,
+        attempts: [now],
+        email: email
+      }));
+    }
+    
+    // Log security event for failed login tracking
+    await logSecurityEvent(null, 'failed_login_recorded', 'low', `Failed login recorded for ${email} (client fallback)`);
   }
 };
 
